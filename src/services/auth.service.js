@@ -25,7 +25,13 @@ const refreshAccessToken = async (refreshToken) => {
 
   const user = await prisma.user.findUnique({
     where: { id: decoded.id },
-    select: { id: true, name: true, email: true, isVerified: true },
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      email: true,
+      isVerified: true,
+    },
   });
 
   if (!user) {

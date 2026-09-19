@@ -5,8 +5,7 @@ const {
   changeEmail,
   changePassword,
   changeAvatar,
-  getMyProfile,
-  getUserProfile,
+  getProfile,
 } = require("../services/user.service");
 
 const changeBioHandler = async (req, res, next) => {
@@ -107,26 +106,12 @@ const changeAvatarHandler = async (req, res, next) => {
   }
 };
 
-const getMyProfileHandler = async (req, res, next) => {
+const getProfileHandler = async (req, res, next) => {
   try {
-    const userId = req.user.id;
+    const { username } = req.params;
 
-    const myProfile = await getMyProfile({
-      userId,
-    });
-
-    res.status(200).json({ status: "success", data: myInfo });
-  } catch (err) {
-    next(err);
-  }
-};
-
-const getUserProfileHandler = async (req, res, next) => {
-  try {
-    const userId = req.params; // this params cuz other's not "your logged in account"
-
-    const userProfile = await getUserProfile({
-      userId,
+    const userProfile = await getProfile({
+      username,
     });
 
     res.status(200).json({ status: "success", data: userProfile });
@@ -142,6 +127,5 @@ module.exports = {
   changeEmailHandler,
   changePasswordHandler,
   changeAvatarHandler,
-  getMyProfileHandler,
-  getUserProfileHandler,
+  getProfileHandler,
 };

@@ -156,41 +156,18 @@ const changeAvatar = async ({ userId, imageUrl }) => {
   return { message: "Avatar updated", result };
 };
 
-const getMyProfile = async ({ userId }) => {
+const getProfile = async ({ username }) => {
   const user = await prisma.user.findUnique({
-    where: { id: userId },
+    where: { username },
     select: {
       id: true,
       name: true,
       username: true,
-      email: true,
       imageUrl: true,
       bio: true,
       role: true,
       isVerified: true,
       createdAt: true,
-    },
-  });
-
-  if (!user) {
-    const error = new Error("User not found");
-    error.statusCode = 404;
-    throw error;
-  }
-
-  return user;
-};
-
-const getUserProfile = async ({ userId }) => {
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      name: true,
-      username: true,
-      bio: true,
-      createdAt: true,
-      _count: { select: { posts: true, followers: true, followings: true } },
     },
   });
 
@@ -210,6 +187,5 @@ module.exports = {
   changeEmail,
   changePassword,
   changeAvatar,
-  getMyProfile,
-  getUserProfile,
+  getProfile,
 };

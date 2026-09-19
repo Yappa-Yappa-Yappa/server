@@ -7,8 +7,7 @@ const {
   changeEmailHandler,
   changePasswordHandler,
   changeAvatarHandler,
-  getUserProfileHandler,
-  getMyProfileHandler,
+  getProfileHandler,
 } = require("../controllers/user.controller");
 const uploadAvatar = require("../config/uploadAvatar");
 
@@ -28,5 +27,6 @@ router.patch(
 );
 
 // Profile
-router.get("/me", verifyToken, getMyProfileHandler);
-router.get("/:userId", getUserProfileHandler);
+router.get("/:username", verifyToken, getProfileHandler);
+
+module.exports = router;
