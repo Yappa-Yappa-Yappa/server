@@ -56,7 +56,11 @@ const getPosts = async ({ page = 1, limit = 20, userId } = {}) => {
 const getPostById = async ({ id }) => {
   const post = await prisma.post.findUnique({
     where: { id },
-    include: { images: true },
+    include: {
+      images: true,
+      user: { select: { id: true, name: true, username: true, imageUrl: true } },
+      _count: { select: { likes: true, comments: true } },
+    },
   });
 
   if (!post) {

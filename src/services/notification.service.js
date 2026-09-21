@@ -14,7 +14,7 @@ const getNotifications = async ({ userId, page = 1, limit = 20, unreadOnly = fal
     prisma.notification.findMany({
       where,
       include: {
-        actor: { select: { id: true, name: true, imageUrl: true } },
+        actor: { select: { id: true, name: true, username: true, imageUrl: true } },
         post: { select: { id: true, content: true } },
       },
       orderBy: { createdAt: "desc" },
