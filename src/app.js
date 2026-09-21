@@ -12,6 +12,7 @@ const followRouter = require("./routes/follow.route");
 const notificationRouter = require("./routes/notification.route");
 const otpRouter = require("./routes/otp.route");
 const userRouter = require("./routes/user.route");
+const conversationRouter = require("./routes/conversation.route");
 
 const errorHandler = require("./middlewares/errorHandler");
 
@@ -36,6 +37,7 @@ app.use("/api/follows", followRouter);
 app.use("/api/notifications", notificationRouter);
 app.use("/api/otps", otpRouter);
 app.use("/api/user", userRouter);
+app.use("/api/conversations", conversationRouter);
 
 app.use(errorHandler);
 
