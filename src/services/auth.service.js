@@ -29,6 +29,7 @@ const refreshAccessToken = async (refreshToken) => {
       id: true,
       name: true,
       username: true,
+      imageUrl: true,
       email: true,
       isVerified: true,
     },
