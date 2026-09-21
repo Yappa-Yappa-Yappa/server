@@ -156,7 +156,7 @@ const changeAvatar = async ({ userId, imageUrl }) => {
   return { message: "Avatar updated", result };
 };
 
-const getProfile = async ({ username }) => {
+const getProfile = async ({ username, viewerId }) => {
   const user = await prisma.user.findUnique({
     where: { username },
     select: {
@@ -168,6 +168,13 @@ const getProfile = async ({ username }) => {
       role: true,
       isVerified: true,
       createdAt: true,
+      _count: {
+        select: {
+          posts: true,
+          followers: true,
+          followings: true,
+        },
+      },
     },
   });
 
@@ -177,7 +184,19 @@ const getProfile = async ({ username }) => {
     throw error;
   }
 
-  return user;
+  const existingFollow =
+    viewerId && viewerId !== user.id
+      ? await prisma.follow.findUnique({
+          where: {
+            followerId_followingId: {
+              followerId: viewerId,
+              followingId: user.id,
+            },
+          },
+        })
+      : null;
+
+  return { ...user, isFollowing: Boolean(existingFollow) };
 };
 
 const getRecentActivity = async ({ userId }) => {

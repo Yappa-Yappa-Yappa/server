@@ -113,6 +113,7 @@ const getProfileHandler = async (req, res, next) => {
 
     const userProfile = await getProfile({
       username,
+      viewerId: req.user.id,
     });
 
     res.status(200).json({ status: "success", data: userProfile });
