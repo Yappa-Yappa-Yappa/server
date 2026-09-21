@@ -9,8 +9,10 @@ const {
   changeAvatarHandler,
   getProfileHandler,
   getRecentActivityHandler,
+  changeBackgroundHandler,
 } = require("../controllers/user.controller");
 const uploadAvatar = require("../config/uploadAvatar");
+const uploadBackground = require("../config/uploadBackground");
 
 const router = express.Router();
 
@@ -25,6 +27,12 @@ router.patch(
   verifyToken,
   uploadAvatar.single("imageUrl"),
   changeAvatarHandler,
+);
+router.patch(
+  "/update-background",
+  verifyToken,
+  uploadBackground.single("bgUrl"),
+  changeBackgroundHandler,
 );
 router.get("/me/activity", verifyToken, getRecentActivityHandler);
 

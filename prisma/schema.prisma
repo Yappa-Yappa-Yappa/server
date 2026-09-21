@@ -31,6 +31,7 @@ model User {
   email String @unique @db.VarChar(100)
   password String @db.VarChar(100)
   imageUrl String? @db.VarChar(255)
+  bgUrl String? @db.VarChar(255)
   bio String? @db.VarChar(255)
   role Role @default(USER)
   isVerified Boolean @default(false)

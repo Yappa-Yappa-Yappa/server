@@ -7,6 +7,7 @@ const {
   changeAvatar,
   getProfile,
   getRecentActivity,
+  changeBackground,
 } = require("../services/user.service");
 
 const changeBioHandler = async (req, res, next) => {
@@ -107,6 +108,22 @@ const changeAvatarHandler = async (req, res, next) => {
   }
 };
 
+const changeBackgroundHandler = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const bgUrl = req.file?.path;
+
+    const updatedBackground = await changeBackground({
+      userId,
+      bgUrl,
+    });
+
+    res.status(200).json({ status: "success", data: updatedBackground });
+  } catch (err) {
+    next(err);
+  }
+};
+
 const getProfileHandler = async (req, res, next) => {
   try {
     const { username } = req.params;
@@ -145,4 +162,5 @@ module.exports = {
   changeAvatarHandler,
   getProfileHandler,
   getRecentActivityHandler,
+  changeBackgroundHandler,
 };

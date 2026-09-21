@@ -156,6 +156,26 @@ const changeAvatar = async ({ userId, imageUrl }) => {
   return { message: "Avatar updated", result };
 };
 
+const changeBackground = async ({ userId, bgUrl }) => {
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    const error = new Error("User not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const result = await prisma.user.update({
+    where: { id: userId },
+    data: { bgUrl },
+    select: { id: true, bgUrl: true },
+  });
+
+  return { message: "Background cover updated", result };
+};
+
 const getProfile = async ({ username, viewerId }) => {
   const user = await prisma.user.findUnique({
     where: { username },
@@ -164,6 +184,7 @@ const getProfile = async ({ username, viewerId }) => {
       name: true,
       username: true,
       imageUrl: true,
+      bgUrl: true,
       bio: true,
       role: true,
       isVerified: true,
@@ -239,4 +260,5 @@ module.exports = {
   changeAvatar,
   getProfile,
   getRecentActivity,
+  changeBackground,
 };
