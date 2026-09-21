@@ -6,6 +6,7 @@ const {
   changePassword,
   changeAvatar,
   getProfile,
+  getRecentActivity,
 } = require("../services/user.service");
 
 const changeBioHandler = async (req, res, next) => {
@@ -120,6 +121,20 @@ const getProfileHandler = async (req, res, next) => {
   }
 };
 
+const getRecentActivityHandler = async (req, res, next) => {
+  try {
+    const userId = req.user.id; // only your own activity, always from the token
+
+    const activity = await getRecentActivity({
+      userId,
+    });
+
+    res.status(200).json({ status: "success", data: activity });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   changeBioHandler,
   changeNameHandler,
@@ -128,4 +143,5 @@ module.exports = {
   changePasswordHandler,
   changeAvatarHandler,
   getProfileHandler,
+  getRecentActivityHandler,
 };

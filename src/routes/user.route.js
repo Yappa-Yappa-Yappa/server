@@ -8,6 +8,7 @@ const {
   changePasswordHandler,
   changeAvatarHandler,
   getProfileHandler,
+  getRecentActivityHandler,
 } = require("../controllers/user.controller");
 const uploadAvatar = require("../config/uploadAvatar");
 
@@ -25,6 +26,7 @@ router.patch(
   uploadAvatar.single("imageUrl"),
   changeAvatarHandler,
 );
+router.get("/me/activity", verifyToken, getRecentActivityHandler);
 
 // Profile
 router.get("/:username", verifyToken, getProfileHandler);

@@ -47,6 +47,7 @@ model User {
   refreshTokens RefreshToken[]
   resetTokens ResetToken[]
   otps Otp[]
+  favorites Favorite[]
 
   @@map("users")
 }
@@ -63,6 +64,7 @@ model Post {
   likes Like[]
   notifications Notification[]
   images PostImage[]
+  favorites Favorite[]
 
   @@index([userId]) // For performance: faster query
   @@index([createdAt])
@@ -168,6 +170,22 @@ model Notification {
   @@index([postId])
   @@index([userId, isRead, createdAt]) // find by userId: 'abc', isRead: false, createdAt: 'asc/desc'. Faster querying?
   @@map("notifications")
+}
+
+model Favorite {
+  id String @id @default(uuid())
+  userId String
+  postId String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  posts Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+
+  @@index([userId])
+  @@index([postId])
+  @@map("favorites")
 }
 
 model Otp {

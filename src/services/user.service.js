@@ -180,6 +180,37 @@ const getProfile = async ({ username }) => {
   return user;
 };
 
+const getRecentActivity = async ({ userId }) => {
+  const [likedPosts, commentedPosts] = await Promise.all([
+    prisma.like.findMany({
+      where: { userId },
+      include: {
+        post: {
+          include: {
+            user: { select: { id: true, name: true, username: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+    prisma.comment.findMany({
+      where: { userId },
+      include: {
+        post: {
+          include: {
+            user: { select: { id: true, name: true, username: true } },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+  ]);
+
+  return { likedPosts, commentedPosts };
+};
+
 module.exports = {
   changeBio,
   changeName,
@@ -188,4 +219,5 @@ module.exports = {
   changePassword,
   changeAvatar,
   getProfile,
+  getRecentActivity,
 };
