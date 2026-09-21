@@ -11,6 +11,7 @@ const upload = require("../config/upload");
 const {
   getCommentsByPostHandler,
   createCommentHandler,
+  deleteCommentHandler,
 } = require("../controllers/comment.controller");
 const {
   likePostHandler,
@@ -35,6 +36,7 @@ router.post(
   createCommentHandler,
 );
 router.get("/:postId/comments", getCommentsByPostHandler);
+router.delete("/comments/:id", verifyToken, deleteCommentHandler);
 
 // Likes
 router.post("/:postId/like", verifyToken, likePostHandler);

@@ -26,7 +26,10 @@ const createComment = async ({ userId, postId, content, imageUrls }) => {
         ? { create: imageUrls.map((url, index) => ({ url, position: index })) }
         : undefined,
     },
-    include: { images: true },
+    include: {
+      images: true,
+      user: { select: { id: true, name: true, username: true, imageUrl: true } },
+    },
   });
 
   await createNotification({
@@ -42,7 +45,10 @@ const createComment = async ({ userId, postId, content, imageUrls }) => {
 const getCommentsByPost = async ({ postId }) => {
   const comments = await prisma.comment.findMany({
     where: { postId },
-    include: { images: true },
+    include: {
+      images: true,
+      user: { select: { id: true, name: true, username: true, imageUrl: true } },
+    },
     orderBy: { createdAt: "asc" },
   });
 
