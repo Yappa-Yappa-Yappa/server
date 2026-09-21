@@ -21,11 +21,13 @@ const createPost = async ({ userId, content, imageUrls }) => {
   return post;
 };
 
-const getPosts = async ({ page = 1, limit = 20 } = {}) => {
+const getPosts = async ({ page = 1, limit = 20, userId } = {}) => {
+  const where = userId ? { userId } : {};
   const skip = (page - 1) * limit;
 
   const [posts, total] = await Promise.all([
     prisma.post.findMany({
+      where,
       include: {
         images: true,
         user: {
@@ -37,7 +39,7 @@ const getPosts = async ({ page = 1, limit = 20 } = {}) => {
       skip,
       take: limit,
     }),
-    prisma.post.count(),
+    prisma.post.count({ where }),
   ]);
 
   return {
