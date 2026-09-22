@@ -84,7 +84,9 @@ const getFollowers = async ({ username }) => {
     prisma.follow.findMany({
       where: { followingId: userId },
       select: {
-        follower: { select: { id: true, name: true, imageUrl: true } }, // get the followers info
+        follower: {
+          select: { id: true, name: true, username: true, imageUrl: true },
+        }, // get the followers info
       },
     }),
   ]);
@@ -100,7 +102,9 @@ const getFollowing = async ({ username }) => {
     prisma.follow.findMany({
       where: { followerId: userId },
       select: {
-        following: { select: { id: true, name: true, imageUrl: true } },
+        following: {
+          select: { id: true, name: true, username: true, imageUrl: true },
+        },
       }, // get the followers info
     }),
   ]);
