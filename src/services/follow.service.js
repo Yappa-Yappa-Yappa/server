@@ -60,7 +60,24 @@ const unfollowUser = async ({ followerId, followingId }) => {
   return { message: "Unfollowed" };
 };
 
-const getFollowers = async ({ userId }) => {
+const getUserIdByUsername = async (username) => {
+  const user = await prisma.user.findUnique({
+    where: { username },
+    select: { id: true },
+  });
+
+  if (!user) {
+    const error = new Error("User not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return user.id;
+};
+
+const getFollowers = async ({ username }) => {
+  const userId = await getUserIdByUsername(username);
+
   // user that we want the followers of their
   const [count, followers] = await Promise.all([
     prisma.follow.count({ where: { followingId: userId } }), // find who follows the user
@@ -75,7 +92,9 @@ const getFollowers = async ({ userId }) => {
   return { count, followers };
 };
 
-const getFollowing = async ({ userId }) => {
+const getFollowing = async ({ username }) => {
+  const userId = await getUserIdByUsername(username);
+
   const [count, followings] = await Promise.all([
     prisma.follow.count({ where: { followerId: userId } }), // find who the user following
     prisma.follow.findMany({

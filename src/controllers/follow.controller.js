@@ -33,9 +33,9 @@ const unfollowUserHandler = async (req, res, next) => {
 
 const getFollowersHandler = async (req, res, next) => {
   try {
-    const { userId } = req.params; // whose followers are we viewing
+    const { username } = req.params; // whose followers are we viewing
 
-    const result = await getFollowers({ userId });
+    const result = await getFollowers({ username });
 
     res.status(200).json({ status: "success", data: result });
   } catch (err) {
@@ -45,9 +45,9 @@ const getFollowersHandler = async (req, res, next) => {
 
 const getFollowingHandler = async (req, res, next) => {
   try {
-    const { userId } = req.params;
+    const { username } = req.params;
 
-    const result = await getFollowing({ userId });
+    const result = await getFollowing({ username });
 
     res.status(200).json({ status: "success", data: result });
   } catch (err) {
