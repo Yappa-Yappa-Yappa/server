@@ -32,7 +32,7 @@ model User {
   password String @db.VarChar(100)
   imageUrl String? @db.VarChar(255)
   bgUrl String? @db.VarChar(255)
-  bio String? @db.VarChar(255)
+  bio String? @db.VarChar(350)
   role Role @default(USER)
   isVerified Boolean @default(false)
   createdAt DateTime @default(now())
@@ -89,7 +89,7 @@ model Comment {
   id String @id @default(uuid())
   postId String
   userId String
-  content String @db.VarChar(500)
+  content String @db.VarChar(1000)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
