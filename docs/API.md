@@ -79,8 +79,8 @@ Post and comment image uploads use `multipart/form-data` with the `images` field
 | --- | --- | --- | --- |
 | POST | `/follows/:userId/follow` | Yes | Follow a user |
 | DELETE | `/follows/:userId/unfollow` | Yes | Unfollow a user |
-| GET | `/follows/:userId/followers` | No | Get a user's followers and count |
-| GET | `/follows/:userId/following` | No | Get users followed by a user and count |
+| GET | `/follows/:username/followers` | Yes | Get a user's followers, count, and viewer follow state |
+| GET | `/follows/:username/following` | Yes | Get users followed by a user, count, and viewer follow state |
 
 ## Notifications
 

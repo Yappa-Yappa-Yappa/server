@@ -35,7 +35,7 @@ const getFollowersHandler = async (req, res, next) => {
   try {
     const { username } = req.params; // whose followers are we viewing
 
-    const result = await getFollowers({ username });
+    const result = await getFollowers({ username, viewerId: req.user.id });
 
     res.status(200).json({ status: "success", data: result });
   } catch (err) {
@@ -47,7 +47,7 @@ const getFollowingHandler = async (req, res, next) => {
   try {
     const { username } = req.params;
 
-    const result = await getFollowing({ username });
+    const result = await getFollowing({ username, viewerId: req.user.id });
 
     res.status(200).json({ status: "success", data: result });
   } catch (err) {

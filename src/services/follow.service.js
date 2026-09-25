@@ -75,7 +75,7 @@ const getUserIdByUsername = async (username) => {
   return user.id;
 };
 
-const getFollowers = async ({ username }) => {
+const getFollowers = async ({ username, viewerId }) => {
   const userId = await getUserIdByUsername(username);
 
   // user that we want the followers of their
@@ -91,10 +91,43 @@ const getFollowers = async ({ username }) => {
     }),
   ]);
 
-  return { count, followers };
+  // Pull out just the ids of the followers (drop any nulls)
+  const followerIds = followers
+    .map(({ follower }) => follower?.id)
+    .filter(Boolean);
+
+  // Of those followers, find out which ones the VIEWER (current logged-in user) also follows
+  // (this is what powers the "Follow"/"Following" button next to each follower in the list)
+  const viewerFollowing = await prisma.follow.findMany({
+    where: {
+      followerId: viewerId,
+      followingId: { in: followerIds },
+    },
+    select: { followingId: true },
+  });
+
+  // Convert to a Set for O(1) lookups instead of scanning an array each time
+  const viewerFollowingIds = new Set(
+    viewerFollowing.map(({ followingId }) => followingId),
+  );
+
+  return {
+    count,
+    // Attach an `isFollowing` flag to each follower, so the UI knows
+    // whether the viewer already follows them too
+    followers: followers.map((entry) => ({
+      ...entry,
+      follower: entry.follower
+        ? {
+            ...entry.follower,
+            isFollowing: viewerFollowingIds.has(entry.follower.id),
+          }
+        : entry.follower, // stays null/undefined if the relation was missing
+    })),
+  };
 };
 
-const getFollowing = async ({ username }) => {
+const getFollowing = async ({ username, viewerId }) => {
   const userId = await getUserIdByUsername(username);
 
   const [count, followings] = await Promise.all([
@@ -109,7 +142,39 @@ const getFollowing = async ({ username }) => {
     }),
   ]);
 
-  return { count, followings };
+  // Pull out just the ids of the people being followed (drop any nulls)
+  const followingIds = followings
+    .map(({ following }) => following?.id)
+    .filter(Boolean);
+
+  // Of those people, find out which ones the VIEWER (current logged-in user) also follows
+  const viewerFollowing = await prisma.follow.findMany({
+    where: {
+      followerId: viewerId,
+      followingId: { in: followingIds },
+    },
+    select: { followingId: true },
+  });
+
+  // Convert to a Set for O(1) lookups instead of scanning an array each time
+  const viewerFollowingIds = new Set(
+    viewerFollowing.map(({ followingId }) => followingId),
+  );
+
+  return {
+    count,
+    // Attach an `isFollowing` flag to each person, so the UI knows
+    // whether to show "Follow" or "Following" next to their name
+    followings: followings.map((entry) => ({
+      ...entry,
+      following: entry.following
+        ? {
+            ...entry.following,
+            isFollowing: viewerFollowingIds.has(entry.following.id),
+          }
+        : entry.following, // stays null/undefined if the relation was missing
+    })),
+  };
 };
 
 module.exports = { followUser, unfollowUser, getFollowers, getFollowing };
