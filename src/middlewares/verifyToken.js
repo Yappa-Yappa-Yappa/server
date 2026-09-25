@@ -31,7 +31,7 @@ const verifyToken = async (req, res, next) => {
 
     req.user = user;
     next();
-  } catch (err) {
+  } catch {
     res.status(401).json({ error: "Not authorized, token failed" });
   }
 };

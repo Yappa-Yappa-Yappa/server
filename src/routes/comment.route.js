@@ -1,7 +1,6 @@
 const express = require("express");
 const verifyToken = require("../middlewares/verifyToken");
 const {
-  createCommentHandler,
   getCommentByIdHandler,
   updateCommentHandler,
   deleteCommentHandler,
