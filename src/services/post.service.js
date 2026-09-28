@@ -1,3 +1,4 @@
+const { Prisma } = require("@prisma/client");
 const { prisma } = require("../config/prisma");
 
 const createPost = async ({ userId, content, imageUrls }) => {
@@ -21,29 +22,79 @@ const createPost = async ({ userId, content, imageUrls }) => {
   return post;
 };
 
-const getPosts = async ({ page = 1, limit = 20, userId } = {}) => {
+// const getPosts = async ({ page = 1, limit = 20, userId } = {}) => {
+//   const where = userId ? { userId } : {};
+//   const skip = (page - 1) * limit;
+
+//   const [posts, total] = await Promise.all([
+//     prisma.post.findMany({
+//       where,
+//       include: {
+//         images: true,
+//         user: {
+//           select: { id: true, name: true, username: true, imageUrl: true },
+//         },
+//         _count: { select: { likes: true, comments: true } },
+//       },
+//       orderBy: { createdAt: "desc" },
+//       skip,
+//       take: limit,
+//     }),
+//     prisma.post.count({ where }),
+//   ]);
+
+//   return {
+//     posts,
+//     pagination: {
+//       page,
+//       limit,
+//       total,
+//       totalPages: Math.ceil(total / limit), // total posts/limit posts = total pages
+//     },
+//   };
+// };
+
+const getPosts = async ({ page = 1, limit = 20, userId, viewerId } = {}) => {
   const where = userId ? { userId } : {};
   const skip = (page - 1) * limit;
 
-  const [posts, total] = await Promise.all([
-    prisma.post.findMany({
-      where,
-      include: {
-        images: true,
-        user: {
-          select: { id: true, name: true, username: true, imageUrl: true },
-        },
-        _count: { select: { likes: true, comments: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      skip,
-      take: limit,
-    }),
+  // Daily post shuffling
+  const day = new Date().toISOString().slice(0, 10);
+  const seed = `${viewerId}-${day}`;
+
+  const [postIds, total] = await Promise.all([
+    prisma.$queryRaw`
+      SELECT "id"
+      FROM "posts"
+      ${userId ? Prisma.sql`WHERE "userId" = ${userId}` : Prisma.empty}
+      ORDER BY md5("id" || ${seed})
+      OFFSET ${skip}
+      LIMIT ${limit}
+    `,
     prisma.post.count({ where }),
   ]);
 
+  const posts = await prisma.post.findMany({
+    where: {
+      id: { in: postIds.map((post) => post.id) },
+    },
+    include: {
+      images: true,
+      user: {
+        select: { id: true, name: true, username: true, imageUrl: true },
+      },
+      _count: { select: { likes: true, comments: true } },
+    },
+  });
+
+  const postsById = new Map(posts.map((post) => [post.id, post]));
+
+  const orderedPosts = postIds
+    .map(({ id }) => postsById.get(id))
+    .filter(Boolean);
+
   return {
-    posts,
+    posts: orderedPosts,
     pagination: {
       page,
       limit,
@@ -58,7 +109,9 @@ const getPostById = async ({ id }) => {
     where: { id },
     include: {
       images: true,
-      user: { select: { id: true, name: true, username: true, imageUrl: true } },
+      user: {
+        select: { id: true, name: true, username: true, imageUrl: true },
+      },
       _count: { select: { likes: true, comments: true } },
     },
   });

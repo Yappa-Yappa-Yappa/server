@@ -23,7 +23,7 @@ const router = express.Router();
 
 // Posts
 router.post("/", verifyToken, upload.array("images", 5), createPostHandler);
-router.get("/", getPostsHandler);
+router.get("/", verifyToken, getPostsHandler);
 router.get("/:id", getPostByIdHandler);
 router.put("/:id", verifyToken, upload.array("images", 5), updatePostHandler);
 router.delete("/:id", verifyToken, deletePostHandler);
