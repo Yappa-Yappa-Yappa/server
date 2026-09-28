@@ -5,7 +5,6 @@ const {
   refresh,
   logout,
 } = require("../controllers/auth.controller");
-const verifyToken = require("../middlewares/verifyToken");
 const validateRequest = require("../middlewares/validateRequest");
 const { registerSchema, loginSchema } = require("../validators/auth.validator");
 

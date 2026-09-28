@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "comments" ALTER COLUMN "content" SET DATA TYPE VARCHAR(1000);
+
+-- AlterTable
+ALTER TABLE "users" ALTER COLUMN "bio" SET DATA TYPE VARCHAR(350);
