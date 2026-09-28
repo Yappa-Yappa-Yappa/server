@@ -44,25 +44,20 @@ const initSocket = (httpServer) => {
 
     socket.on(
       "message:send",
-      async ({ conversationId, content } = {}, acknowledge) => {
+      async ({ conversationId, content, clientMessageId } = {}, acknowledge) => {
         try {
-          const message = await createMessage({
+          const { message, recipientIds } = await createMessage({
             senderId: socket.userId,
             conversationId,
             content,
           });
-          const conversation = await getConversationForUser({
-            id: conversationId,
-            userId: socket.userId,
-          });
-          const recipients =
-            conversation?.participants?.map(
-              (participant) => participant.userId,
-            ) || [];
-          recipients.forEach((userId) =>
-            io.to(userId).emit("message:new", message),
+          const eventMessage = clientMessageId
+            ? { ...message, clientMessageId }
+            : message;
+          recipientIds.forEach((userId) =>
+            io.to(userId).emit("message:new", eventMessage),
           );
-          acknowledge?.({ ok: true, message });
+          acknowledge?.({ ok: true, message: eventMessage });
         } catch (error) {
           acknowledge?.({
             ok: false,

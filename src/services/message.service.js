@@ -7,11 +7,19 @@ const createMessage = async ({ conversationId, senderId, content }) => {
     error.statusCode = 400;
     throw error;
   }
-  const participant = await prisma.conversationParticipant.findUnique({
-    where: { conversationId_userId: { conversationId, userId: senderId } },
+
+  // Combine authorization and participant lookup for fast query
+  const conversation = await prisma.conversation.findFirst({
+    where: {
+      id: conversationId,
+      participants: { some: { userId: senderId } },
+    },
+    select: {
+      participants: { select: { userId: true } },
+    },
   });
 
-  if (!participant) {
+  if (!conversation) {
     const error = new Error("You're not part of this conversation");
     error.statusCode = 403;
     throw error;
@@ -26,7 +34,10 @@ const createMessage = async ({ conversationId, senderId, content }) => {
     },
   });
 
-  return message;
+  return {
+    message,
+    recipientIds: conversation.participants.map(({ userId }) => userId),
+  };
 };
 
 module.exports = { createMessage };
