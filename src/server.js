@@ -11,11 +11,9 @@ const server = http.createServer(app);
 initSocket(server);
 
 connectDB().then(() => {
-  app.listen(() => {
-    server.listen(PORT, () =>
-      console.log(`Server is running on http://localhost:${PORT}`),
-    );
-  });
+  server.listen(PORT, () =>
+    console.log(`Server is running on http://localhost:${PORT}`),
+  );
 });
 
 process.on("SIGINT", async () => {
