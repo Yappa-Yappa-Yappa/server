@@ -12,13 +12,24 @@ const {
   loginSchema,
   googleLoginSchema,
 } = require("../validators/auth.validator");
+const { authLimiter, oauthLimiter } = require("../middlewares/rateLimiter");
 
 const router = express.Router();
 
 router.post("/refresh", refresh);
-router.post("/register", validateRequest(registerSchema), register);
-router.post("/login", validateRequest(loginSchema), login);
-router.post("/google", validateRequest(googleLoginSchema), googleLogin);
+router.post(
+  "/register",
+  validateRequest(registerSchema),
+  authLimiter,
+  register,
+);
+router.post("/login", validateRequest(loginSchema), authLimiter, login);
+router.post(
+  "/google",
+  validateRequest(googleLoginSchema),
+  oauthLimiter,
+  googleLogin,
+);
 router.post("/logout", logout);
 
 module.exports = router;
