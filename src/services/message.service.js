@@ -25,13 +25,22 @@ const createMessage = async ({ conversationId, senderId, content }) => {
     throw error;
   }
 
-  const message = await prisma.message.create({
-    data: { conversationId, senderId, content: trimmedContent },
-    include: {
-      sender: {
-        select: { id: true, name: true, username: true, imageUrl: true },
+  const message = await prisma.$transaction(async (transaction) => {
+    const createdMessage = await transaction.message.create({
+      data: { conversationId, senderId, content: trimmedContent },
+      include: {
+        sender: {
+          select: { id: true, name: true, username: true, imageUrl: true },
+        },
       },
-    },
+    });
+
+    await transaction.conversationParticipant.updateMany({
+      where: { conversationId, userId: { not: senderId } },
+      data: { unreadCount: { increment: 1 } },
+    });
+
+    return createdMessage;
   });
 
   return {

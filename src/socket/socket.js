@@ -2,7 +2,11 @@
 const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
 const { createMessage } = require("../services/message.service");
-const { getConversationForUser } = require("../services/conversation.service");
+const {
+  getConversationForUser,
+  markConversationRead,
+  getUnreadConversationCount,
+} = require("../services/conversation.service");
 
 const initSocket = (httpServer) => {
   const io = new Server(httpServer, {
@@ -41,6 +45,28 @@ const initSocket = (httpServer) => {
     socket.on("conversation:leave", ({ conversationId } = {}) => {
       socket.leave(`conversation:${conversationId}`);
     });
+
+    socket.on(
+      "conversation:read",
+      async ({ conversationId } = {}, acknowledge) => {
+        try {
+          await markConversationRead({
+            conversationId,
+            userId: socket.userId,
+          });
+          const count = await getUnreadConversationCount({
+            userId: socket.userId,
+          });
+          io.to(socket.userId).emit("conversation:unread-count", { count });
+          acknowledge?.({ ok: true, count });
+        } catch (error) {
+          acknowledge?.({
+            ok: false,
+            error: error.message || "Could not mark conversation as read",
+          });
+        }
+      },
+    );
 
     socket.on(
       "message:send",

@@ -1,4 +1,10 @@
-const { getConversations, getOrCreateDirectConversation, getMessages } = require("../services/conversation.service");
+const {
+  getConversations,
+  getOrCreateDirectConversation,
+  getMessages,
+  markConversationRead,
+  getUnreadConversationCount,
+} = require("../services/conversation.service");
 
 const getConversationsHandler = async (req, res, next) => {
   try {
@@ -14,6 +20,23 @@ const getOrCreateDirectConversationHandler = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
+const getUnreadConversationCountHandler = async (req, res, next) => {
+  try {
+    const count = await getUnreadConversationCount({ userId: req.user.id });
+    res.status(200).json({ status: "success", data: { count } });
+  } catch (err) { next(err); }
+};
+
+const markConversationReadHandler = async (req, res, next) => {
+  try {
+    await markConversationRead({
+      conversationId: req.params.id,
+      userId: req.user.id,
+    });
+    res.status(200).json({ status: "success" });
+  } catch (err) { next(err); }
+};
+
 const getMessagesHandler = async (req, res, next) => {
   try {
     const page = Number.parseInt(req.query.page, 10) || 1;
@@ -23,4 +46,10 @@ const getMessagesHandler = async (req, res, next) => {
   } catch (err) { next(err); }
 };
 
-module.exports = { getConversationsHandler, getOrCreateDirectConversationHandler, getMessagesHandler };
+module.exports = {
+  getConversationsHandler,
+  getOrCreateDirectConversationHandler,
+  getMessagesHandler,
+  getUnreadConversationCountHandler,
+  markConversationReadHandler,
+};

@@ -22,6 +22,9 @@ const formatConversation = (conversation, userId) => {
     id: conversation.id,
     participant: participant?.user || null,
     lastMessage: conversation.messages[0] || null,
+    unreadCount:
+      conversation.participants.find((entry) => entry.userId === userId)
+        ?.unreadCount || 0,
     createdAt: conversation.createdAt,
   };
 };
@@ -94,6 +97,11 @@ const getMessages = async ({ conversationId, userId, page = 1, limit = 30 }) => 
     throw error;
   }
 
+  await prisma.conversationParticipant.updateMany({
+    where: { conversationId, userId },
+    data: { unreadCount: 0 },
+  });
+
   const [messages, total] = await Promise.all([
     prisma.message.findMany({
       where: { conversationId },
@@ -111,4 +119,34 @@ const getMessages = async ({ conversationId, userId, page = 1, limit = 30 }) => 
   };
 };
 
-module.exports = { getConversationForUser, getConversations, getOrCreateDirectConversation, getMessages, formatConversation };
+const markConversationRead = async ({ conversationId, userId }) => {
+  const result = await prisma.conversationParticipant.updateMany({
+    where: { conversationId, userId },
+    data: { unreadCount: 0 },
+  });
+
+  if (result.count === 0) {
+    const error = new Error("Conversation not found");
+    error.statusCode = 404;
+    throw error;
+  }
+};
+
+const getUnreadConversationCount = async ({ userId }) => {
+  const result = await prisma.conversationParticipant.aggregate({
+    where: { userId },
+    _sum: { unreadCount: true },
+  });
+
+  return result._sum.unreadCount || 0;
+};
+
+module.exports = {
+  getConversationForUser,
+  getConversations,
+  getOrCreateDirectConversation,
+  getMessages,
+  markConversationRead,
+  getUnreadConversationCount,
+  formatConversation,
+};
