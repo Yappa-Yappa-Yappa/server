@@ -64,13 +64,31 @@ const getPosts = async ({ page = 1, limit = 20, userId, viewerId } = {}) => {
 
   const [postIds, total] = await Promise.all([
     prisma.$queryRaw`
-      SELECT "id"
-      FROM "posts"
-      ${userId ? Prisma.sql`WHERE "userId" = ${userId}` : Prisma.empty}
-      ORDER BY md5("id" || ${seed})
-      OFFSET ${skip}
-      LIMIT ${limit}
-    `,
+  WITH ranked_posts AS (
+    SELECT
+      "id",
+      ROW_NUMBER() OVER (
+        ORDER BY "createdAt" DESC, "id" DESC
+      ) AS newest_rank
+    FROM "posts"
+    ${userId ? Prisma.sql`WHERE "userId" = ${userId}` : Prisma.empty}
+  )
+  SELECT "id"
+  FROM ranked_posts
+  ORDER BY
+    CASE
+      WHEN newest_rank <= 5 THEN 0
+      ELSE 1
+    END,
+    CASE
+      WHEN newest_rank <= 5 THEN newest_rank
+    END ASC,
+    CASE
+      WHEN newest_rank > 5 THEN md5("id" || ${seed})
+    END ASC
+  OFFSET ${skip}
+  LIMIT ${limit}
+`,
     prisma.post.count({ where }),
   ]);
 
