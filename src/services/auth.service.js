@@ -1,11 +1,41 @@
 const { prisma } = require("../config/prisma");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const { OAuth2Client } = require("google-auth-library");
 const {
   generateAccessToken,
   generateRefreshToken,
 } = require("../utils/generateToken");
 const sendOtp = require("../utils/sendMail");
+
+const googleClient = new OAuth2Client();
+
+const getPublicUser = (user) => {
+  const { password: _, ...userWithoutPassword } = user;
+  return userWithoutPassword;
+};
+
+const createUsername = async (transaction, name) => {
+  const base =
+    (name || "yapper")
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, "")
+      .slice(0, 44) || "yapper";
+
+  for (let attempt = 0; attempt < 10; attempt += 1) {
+    const username = `${base}${Math.floor(1000 + Math.random() * 9000)}`;
+    const existingUsername = await transaction.user.findUnique({
+      where: { username },
+      select: { id: true },
+    });
+
+    if (!existingUsername) return username;
+  }
+
+  const error = new Error("Could not create a unique username");
+  error.statusCode = 503;
+  throw error;
+};
 
 const refreshAccessToken = async (refreshToken) => {
   if (!refreshToken) {
@@ -127,7 +157,7 @@ const loginUser = async ({ email, password }, res) => {
     where: { email },
   });
 
-  if (!user) {
+  if (!user || !user.password) {
     const error = new Error("Invalid credentials");
     error.statusCode = 401;
     throw error;
@@ -149,8 +179,102 @@ const loginUser = async ({ email, password }, res) => {
   const accessToken = generateAccessToken(user.id);
   const refreshToken = generateRefreshToken(user.id, res);
 
-  const { password: _, ...userWithoutPassword } = user; // destructure password from the rest
-  return { user: userWithoutPassword, accessToken, refreshToken };
+  return { user: getPublicUser(user), accessToken, refreshToken };
 };
 
-module.exports = { refreshAccessToken, registerUser, loginUser };
+const loginWithGoogle = async ({ credential }, res) => {
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    const error = new Error("Google login is not configured");
+    error.statusCode = 503;
+    throw error;
+  }
+
+  let payload;
+  try {
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    payload = ticket.getPayload();
+  } catch {
+    const error = new Error("Invalid Google credential");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  if (!payload?.sub || !payload.email || payload.email_verified !== true) {
+    const error = new Error("Google account email is not verified");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  const email = payload.email.trim().toLowerCase();
+  const provider = "google";
+
+  const user = await prisma.$transaction(async (transaction) => {
+    const existingAccount = await transaction.account.findUnique({
+      where: {
+        provider_providerId: {
+          provider,
+          providerId: payload.sub,
+        },
+      },
+      include: { user: true },
+    });
+
+    if (existingAccount) return existingAccount.user;
+
+    const existingUser = await transaction.user.findUnique({
+      where: { email },
+    });
+
+    if (existingUser) {
+      await transaction.account.create({
+        data: {
+          provider,
+          providerId: payload.sub,
+          userId: existingUser.id,
+        },
+      });
+
+      return existingUser;
+    }
+
+    const userCount = await transaction.user.count();
+    const username = await createUsername(
+      transaction,
+      payload.name || email.split("@")[0],
+    );
+
+    const newUser = await transaction.user.create({
+      data: {
+        name: payload.name || email.split("@")[0],
+        username,
+        email,
+        imageUrl: payload.picture || null,
+        isVerified: true,
+        role: userCount === 0 ? "ADMIN" : "USER",
+        accounts: {
+          create: {
+            provider,
+            providerId: payload.sub,
+          },
+        },
+      },
+    });
+
+    return newUser;
+  });
+
+  const accessToken = generateAccessToken(user.id);
+  const refreshToken = generateRefreshToken(user.id, res);
+
+  return { user: getPublicUser(user), accessToken, refreshToken };
+};
+
+module.exports = {
+  refreshAccessToken,
+  registerUser,
+  loginUser,
+  loginWithGoogle,
+};

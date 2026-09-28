@@ -81,6 +81,14 @@ const changeEmail = async ({ userId, newEmail, password }) => {
     throw error;
   }
 
+  if (!user.password) {
+    const error = new Error(
+      "This account has no password. Use 'forgot password' to set one.",
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+
   const isPassword = await bcrypt.compare(password, user.password);
 
   if (!isPassword) {
@@ -115,6 +123,14 @@ const changePassword = async ({ userId, currentPassword, newPassword }) => {
   if (!user) {
     const error = new Error("User not found");
     error.statusCode = 404;
+    throw error;
+  }
+
+  if (!user.password) {
+    const error = new Error(
+      "This account has no password. Use 'forgot password' to set one.",
+    );
+    error.statusCode = 400;
     throw error;
   }
 

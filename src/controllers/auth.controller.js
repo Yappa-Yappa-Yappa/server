@@ -2,6 +2,7 @@ const {
   refreshAccessToken,
   registerUser,
   loginUser,
+  loginWithGoogle,
 } = require("../services/auth.service");
 
 const refresh = async (req, res, next) => {
@@ -41,6 +42,17 @@ const login = async (req, res, next) => {
   }
 };
 
+const googleLogin = async (req, res, next) => {
+  try {
+    const { credential } = req.body;
+    const { user, accessToken } = await loginWithGoogle({ credential }, res);
+
+    res.status(200).json({ status: "success", data: { user, accessToken } });
+  } catch (err) {
+    next(err);
+  }
+};
+
 const logout = (req, res) => {
   res.clearCookie("refreshToken", {
     httpOnly: true,
@@ -50,4 +62,4 @@ const logout = (req, res) => {
   res.status(200).json({ status: "success", message: "Logged out" });
 };
 
-module.exports = { register, login, refresh, logout };
+module.exports = { register, login, googleLogin, refresh, logout };
