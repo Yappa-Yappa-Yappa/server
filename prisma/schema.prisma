@@ -274,6 +274,9 @@ model Message {
   conversationId String
   senderId       String
   content        String   @db.VarChar(2000)
+  sentAt         DateTime @default(now())
+  deliveredAt    DateTime?
+  seenAt         DateTime?
   createdAt      DateTime @default(now())
 
   conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)

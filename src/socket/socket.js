@@ -1,7 +1,10 @@
 // socket/socket.js
 const { Server } = require("socket.io");
 const jwt = require("jsonwebtoken");
-const { createMessage } = require("../services/message.service");
+const {
+  createMessage,
+  markMessageDelivered,
+} = require("../services/message.service");
 const {
   getConversationForUser,
   markConversationRead,
@@ -50,7 +53,7 @@ const initSocket = (httpServer) => {
       "conversation:read",
       async ({ conversationId } = {}, acknowledge) => {
         try {
-          await markConversationRead({
+          const seenMessages = await markConversationRead({
             conversationId,
             userId: socket.userId,
           });
@@ -58,11 +61,45 @@ const initSocket = (httpServer) => {
             userId: socket.userId,
           });
           io.to(socket.userId).emit("conversation:unread-count", { count });
+          seenMessages.forEach(({ id, senderId, seenAt }) => {
+            io.to(senderId).emit("message:status", {
+              messageId: id,
+              status: "seen",
+              seenAt,
+            });
+          });
           acknowledge?.({ ok: true, count });
         } catch (error) {
           acknowledge?.({
             ok: false,
             error: error.message || "Could not mark conversation as read",
+          });
+        }
+      },
+    );
+
+    socket.on(
+      "message:delivered",
+      async ({ messageId } = {}, acknowledge) => {
+        try {
+          const deliveredMessage = await markMessageDelivered({
+            messageId,
+            userId: socket.userId,
+          });
+
+          if (deliveredMessage) {
+            io.to(deliveredMessage.senderId).emit("message:status", {
+              messageId: deliveredMessage.id,
+              status: "delivered",
+              deliveredAt: deliveredMessage.deliveredAt,
+            });
+          }
+
+          acknowledge?.({ ok: Boolean(deliveredMessage) });
+        } catch (error) {
+          acknowledge?.({
+            ok: false,
+            error: error.message || "Could not mark message as delivered",
           });
         }
       },

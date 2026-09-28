@@ -130,6 +130,25 @@ const markConversationRead = async ({ conversationId, userId }) => {
     error.statusCode = 404;
     throw error;
   }
+
+  const unseenMessages = await prisma.message.findMany({
+    where: {
+      conversationId,
+      senderId: { not: userId },
+      seenAt: null,
+    },
+    select: { id: true, senderId: true },
+  });
+
+  const seenAt = new Date();
+  if (unseenMessages.length > 0) {
+    await prisma.message.updateMany({
+      where: { id: { in: unseenMessages.map(({ id }) => id) } },
+      data: { deliveredAt: seenAt, seenAt },
+    });
+  }
+
+  return unseenMessages.map((message) => ({ ...message, seenAt }));
 };
 
 const getUnreadConversationCount = async ({ userId }) => {

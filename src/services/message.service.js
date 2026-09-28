@@ -49,4 +49,25 @@ const createMessage = async ({ conversationId, senderId, content }) => {
   };
 };
 
-module.exports = { createMessage };
+const markMessageDelivered = async ({ messageId, userId }) => {
+  const message = await prisma.message.findFirst({
+    where: {
+      id: messageId,
+      senderId: { not: userId },
+      conversation: { participants: { some: { userId } } },
+    },
+    select: { id: true, senderId: true, deliveredAt: true },
+  });
+
+  if (!message) return null;
+
+  if (message.deliveredAt) return message;
+
+  return prisma.message.update({
+    where: { id: message.id },
+    data: { deliveredAt: new Date() },
+    select: { id: true, senderId: true, deliveredAt: true },
+  });
+};
+
+module.exports = { createMessage, markMessageDelivered };
