@@ -143,6 +143,27 @@ const getPostById = async ({ id }) => {
   return post;
 };
 
+const incrementView = async ({ id }) => {
+  // Increment viewCount atomically without changing updatedAt.
+  // Raw SQL avoids Prisma's @updatedAt behavior for analytics-only updates.
+  const rows = await prisma.$queryRaw`
+    UPDATE "posts"
+    SET "viewCount" = "viewCount" + 1
+    WHERE "id" = ${id}
+    RETURNING *
+  `;
+
+  const view = rows[0];
+
+  if (!view) {
+    const error = new Error("Can't view the yap");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return view;
+};
+
 const updatePost = async ({ id, userId, content, imageUrls }) => {
   const exist = await prisma.post.findUnique({
     where: { id },
@@ -213,6 +234,7 @@ module.exports = {
   createPost,
   getPosts,
   getPostById,
+  incrementView,
   updatePost,
   deletePost,
 };

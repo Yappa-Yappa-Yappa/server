@@ -35,6 +35,8 @@ model User {
   bio String? @db.VarChar(350)
   role Role @default(USER)
   isVerified Boolean @default(false)
+  isActive Boolean @default(true)
+  deletedAt DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -52,6 +54,7 @@ model User {
   conversationParticipants ConversationParticipant[]
   messages Message[]
   accounts Account[]
+  reposts Repost[]
 
   @@map("users")
 }
@@ -74,6 +77,7 @@ model Post {
   id String @id @default(uuid())
   userId String
   content String?
+  viewCount Int @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -83,10 +87,27 @@ model Post {
   notifications Notification[]
   images PostImage[]
   favorites Favorite[]
+  reposts Repost[]
 
   @@index([userId]) // For performance: faster query
   @@index([createdAt])
   @@map("posts")    // For table name in database
+}
+
+model Repost {
+  id String @id @default(uuid())
+  userId String
+  postId String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, postId])
+  @@index([userId])
+  @@index([postId])
+  @@index([createdAt])
+  @@map("reposts")
 }
 
 model PostImage {
@@ -274,7 +295,6 @@ model Message {
   conversationId String
   senderId       String
   content        String   @db.VarChar(2000)
-  sentAt         DateTime @default(now())
   deliveredAt    DateTime?
   seenAt         DateTime?
   createdAt      DateTime @default(now())

@@ -4,6 +4,7 @@ const {
   getPostById,
   updatePost,
   deletePost,
+  incrementView,
 } = require("../services/post.service");
 
 const createPostHandler = async (req, res, next) => {
@@ -52,6 +53,17 @@ const getPostByIdHandler = async (req, res, next) => {
   }
 };
 
+const incrementViewHandler = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const view = await incrementView({ id });
+
+    res.status(200).json({ status: "success", data: view });
+  } catch (err) {
+    next(err);
+  }
+};
+
 const updatePostHandler = async (req, res, next) => {
   try {
     const { id } = req.params;
@@ -88,6 +100,7 @@ const deletePostHandler = async (req, res, next) => {
 module.exports = {
   createPostHandler,
   getPostByIdHandler,
+  incrementViewHandler,
   getPostsHandler,
   updatePostHandler,
   deletePostHandler,

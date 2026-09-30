@@ -6,6 +6,7 @@ const {
   getPostByIdHandler,
   updatePostHandler,
   deletePostHandler,
+  incrementViewHandler,
 } = require("../controllers/post.controller");
 const upload = require("../config/upload");
 const {
@@ -25,6 +26,7 @@ const router = express.Router();
 router.post("/", verifyToken, upload.array("images", 5), createPostHandler);
 router.get("/", verifyToken, getPostsHandler);
 router.get("/:id", getPostByIdHandler);
+router.patch("/:id", incrementViewHandler);
 router.put("/:id", verifyToken, upload.array("images", 5), updatePostHandler);
 router.delete("/:id", verifyToken, deletePostHandler);
 
