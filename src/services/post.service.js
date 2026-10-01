@@ -105,14 +105,36 @@ const getPosts = async ({ page = 1, limit = 20, userId, viewerId } = {}) => {
     },
   });
 
+  // Load the current viewer's saved post IDs so each feed item can show
+  // whether its bookmark action should add or remove a favorite.
+  const favoritePostIds = viewerId
+    ? new Set(
+        (
+          await prisma.favorite.findMany({
+            where: {
+              userId: viewerId,
+              postId: { in: postIds.map((post) => post.id) },
+            },
+            select: { postId: true },
+          })
+        ).map(({ postId }) => postId),
+      )
+    : new Set();
+
   const postsById = new Map(posts.map((post) => [post.id, post]));
 
   const orderedPosts = postIds
     .map(({ id }) => postsById.get(id))
     .filter(Boolean);
 
+  // Expose per-viewer bookmark state to the client.
+  const postsWithFavoriteState = orderedPosts.map((post) => ({
+    ...post,
+    isFavorited: favoritePostIds.has(post.id),
+  }));
+
   return {
-    posts: orderedPosts,
+    posts: postsWithFavoriteState,
     pagination: {
       page,
       limit,

@@ -19,6 +19,11 @@ const {
   getLikesByPostHandler,
   unlikePostHandler,
 } = require("../controllers/like.controller");
+const {
+  removeFavoriteHandler,
+  addFavoriteHandler,
+  getFavoritesHandler,
+} = require("../controllers/favorite.controller");
 
 const router = express.Router();
 
@@ -44,5 +49,10 @@ router.delete("/comments/:id", verifyToken, deleteCommentHandler);
 router.post("/:postId/like", verifyToken, likePostHandler);
 router.get("/:postId/likes", getLikesByPostHandler);
 router.delete("/:postId/like", verifyToken, unlikePostHandler);
+
+// Favorites
+router.post("/:postId/favorite", verifyToken, addFavoriteHandler);
+router.get("/user/favorites", verifyToken, getFavoritesHandler);
+router.delete("/:postId/favorite", verifyToken, removeFavoriteHandler);
 
 module.exports = router;
