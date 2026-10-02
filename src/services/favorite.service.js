@@ -61,4 +61,43 @@ const removeFavorite = async ({ userId, postId }) => {
   return { message: "Removed from favorite" };
 };
 
-module.exports = { addFavorite, getFavorites, removeFavorite };
+const addCommentFavorite = async ({ userId, commentId }) => {
+  const comment = await prisma.comment.findUnique({ where: { id: commentId } });
+
+  if (!comment) {
+    const error = new Error("Can't find the comment");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  const existingFavorite = await prisma.favorite.findUnique({
+    where: { userId_commentId: { userId, commentId } },
+  });
+
+  if (existingFavorite) return existingFavorite;
+
+  return prisma.favorite.create({ data: { userId, commentId } });
+};
+
+const removeCommentFavorite = async ({ userId, commentId }) => {
+  const existingFavorite = await prisma.favorite.findUnique({
+    where: { userId_commentId: { userId, commentId } },
+  });
+
+  if (!existingFavorite) {
+    const error = new Error("You haven't favorited this comment");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  await prisma.favorite.delete({ where: { id: existingFavorite.id } });
+  return { message: "Removed from favorite" };
+};
+
+module.exports = {
+  addFavorite,
+  getFavorites,
+  removeFavorite,
+  addCommentFavorite,
+  removeCommentFavorite,
+};

@@ -42,7 +42,7 @@ router.post(
   upload.array("images", 3),
   createCommentHandler,
 );
-router.get("/:postId/comments", getCommentsByPostHandler);
+router.get("/:postId/comments", verifyToken, getCommentsByPostHandler);
 router.delete("/comments/:id", verifyToken, deleteCommentHandler);
 
 // Likes

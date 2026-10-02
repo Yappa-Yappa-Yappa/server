@@ -81,13 +81,29 @@ Post and comment image uploads use `multipart/form-data` with the `images` field
 
 ## Comments
 
+The post comment list returns only top-level comments ordered by creation time. Each comment includes `_count.replies`. A reply references the comment it answers through `parentId`; open the comment thread endpoint to retrieve replies.
+
 | Method | Path | Auth | Description |
 | --- | --- | --- | --- |
-| POST | `/posts/:postId/comments` | Yes | Add a comment with optional `content` and `images` |
-| GET | `/posts/:postId/comments` | No | List comments for a post |
+| POST | `/posts/:postId/comments` | Yes | Add a comment or reply with optional `content`, `images`, and `parentId` |
+| GET | `/posts/:postId/comments` | Yes | List top-level comments for a post with reply counts, like state, and bookmark state |
 | GET | `/comments/:id` | No | Get one comment and its images |
+| GET | `/comments/:id/thread` | Yes | Get a comment and its direct replies in chronological order with like/bookmark state |
 | PATCH | `/comments/:id` | Yes | Update the owner's comment; accepts `content` and optional `images` |
 | DELETE | `/comments/:id` | Yes | Delete the owner's comment |
+
+To create a reply, include the parent comment ID. The parent must exist and belong to the same post:
+
+```json
+{
+  "content": "This is a reply",
+  "parentId": "comment-id"
+}
+```
+
+Omit `parentId` for a top-level comment. A top-level comment notifies the post author; a reply notifies the parent comment author. Users are not notified of their own comments or replies.
+
+Comment likes use `/comments/:commentId/like`. Comment bookmarks use `/comments/:commentId/favorite` and require authentication for both POST and DELETE.
 
 ## Likes
 
