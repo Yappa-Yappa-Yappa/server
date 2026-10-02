@@ -23,4 +23,27 @@ const googleLoginSchema = z.object({
   credential: z.string().trim().min(1, "Google credential is required"),
 });
 
-module.exports = { registerSchema, loginSchema, googleLoginSchema };
+const forgotPasswordSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Invalid email address"),
+});
+
+const resetPasswordSchema = z.object({
+  token: z.string().min(1, "Token is required"),
+  newPassword: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .regex(/[a-zA-Z]/, "Password must contain at least one letter")
+    .regex(/[0-9]/, "Password must contain at least one number")
+    .regex(
+      /[^a-zA-Z0-9]/,
+      "Password must contain at least one special character",
+    ),
+});
+
+module.exports = {
+  registerSchema,
+  loginSchema,
+  googleLoginSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+};

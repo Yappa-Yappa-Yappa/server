@@ -3,6 +3,8 @@ const {
   registerUser,
   loginUser,
   loginWithGoogle,
+  forgotPassword,
+  resetPassword,
 } = require("../services/auth.service");
 
 const refresh = async (req, res, next) => {
@@ -62,4 +64,39 @@ const logout = (req, res) => {
   res.status(200).json({ status: "success", message: "Logged out" });
 };
 
-module.exports = { register, login, googleLogin, refresh, logout };
+const forgotPasswordHandler = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+
+    const data = await forgotPassword({ email });
+
+    res.status(200).json({
+      status: "success",
+      data,
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const resetPasswordHandler = async (req, res, next) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    const data = await resetPassword({ token, newPassword });
+
+    res.status(200).json({ status: "success", data });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = {
+  register,
+  login,
+  googleLogin,
+  refresh,
+  logout,
+  forgotPasswordHandler,
+  resetPasswordHandler,
+};

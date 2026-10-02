@@ -1,12 +1,13 @@
 const { prisma } = require("../config/prisma");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
+const crypto = require("crypto");
 const { OAuth2Client } = require("google-auth-library");
 const {
   generateAccessToken,
   generateRefreshToken,
 } = require("../utils/generateToken");
-const sendOtp = require("../utils/sendMail");
+const { sendOtp, sendResetLink } = require("../utils/sendMail");
 
 const googleClient = new OAuth2Client();
 
@@ -272,9 +273,64 @@ const loginWithGoogle = async ({ credential }, res) => {
   return { user: getPublicUser(user), accessToken, refreshToken };
 };
 
+const forgotPassword = async ({ email }) => {
+  // Look up the user by their email (they don't know their own id)
+  const user = await prisma.user.findUnique({
+    where: { email },
+  });
+
+  if (!user) {
+    return { message: "A reset link has been sent, please check your email" };
+  }
+
+  const token = crypto.randomBytes(32).toString("hex");
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000); // 30 mins
+
+  await prisma.resetToken.deleteMany({ where: { userId: user.id } }); //Clear old ones
+  await prisma.resetToken.create({
+    data: { userId: user.id, token, expiresAt },
+  });
+
+  const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
+  await sendResetLink(user.email, resetLink);
+
+  return { message: "A reset link has been sent, please check your email" };
+};
+
+const resetPassword = async ({ token, newPassword }) => {
+  const record = await prisma.resetToken.findUnique({
+    where: { token },
+  });
+
+  if (!record) {
+    const error = new Error("Invalid or expired token");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (record.expiresAt < new Date()) {
+    const error = new Error("Token has expired");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+  await prisma.user.update({
+    where: { id: record.userId },
+    data: { password: hashedPassword },
+  });
+
+  await prisma.resetToken.delete({ where: { token } });
+
+  return { message: "Password reset successful" };
+};
+
 module.exports = {
   refreshAccessToken,
   registerUser,
   loginUser,
   loginWithGoogle,
+  forgotPassword,
+  resetPassword,
 };
