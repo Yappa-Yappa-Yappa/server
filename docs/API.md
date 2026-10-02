@@ -123,6 +123,8 @@ Comment likes use `/comments/:commentId/like`. Comment bookmarks use `/comments/
 | POST | `/posts/:postId/favorite` | Yes | Add a post to the authenticated user's favorites |
 | GET | `/posts/user/favorites` | Yes | List the authenticated user's favorited posts |
 | DELETE | `/posts/:postId/favorite` | Yes | Remove a post from the authenticated user's favorites |
+| POST | `/comments/:commentId/favorite` | Yes | Bookmark a comment or reply |
+| DELETE | `/comments/:commentId/favorite` | Yes | Remove a comment or reply bookmark |
 
 ## Follows
 

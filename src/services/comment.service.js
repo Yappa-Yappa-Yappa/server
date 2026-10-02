@@ -156,7 +156,7 @@ const getCommentThread = async ({ id, viewerId }) => {
   }
 
   const replies = await prisma.comment.findMany({
-    where: { postId: comment.postId, parentId: id },
+    where: { postId: comment.postId, parentId: id, id: { not: id } },
     include: commentInclude,
     orderBy: { createdAt: "asc" },
   });

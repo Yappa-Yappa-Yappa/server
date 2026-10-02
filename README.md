@@ -36,11 +36,18 @@ Fill in the values in `.env`. Never commit `.env` or any secret values.
 Prisma schema and migrations are stored in `prisma/`:
 
 ```bash
-npx prisma generate
 npx prisma migrate dev
+npx prisma generate
 ```
 
 Run `npx prisma generate` after schema-only changes. Use a migration when changing the database structure.
+
+After pulling migrations, stop any running server process before applying them and regenerating Prisma Client:
+
+```bash
+npx prisma migrate dev
+npx prisma generate
+```
 
 ## Development
 
