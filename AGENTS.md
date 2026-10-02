@@ -12,7 +12,9 @@ Express 5 + Prisma (PostgreSQL) backend. CommonJS, Node >= 18.
 - `npm run dev` - hot-reload dev server (nodemon `src/server.js`)
 - `npm start` - production
 - `npm test` - not configured; it is a stub that exits 1
-- No linter, formatter, or typecheck is configured.
+- `npm run lint` - run ESLint
+- `npm run lint:fix` - apply supported ESLint fixes
+- No formatter or typecheck is configured.
 
 ## Prisma
 

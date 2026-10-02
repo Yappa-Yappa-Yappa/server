@@ -48,9 +48,24 @@ The backend verifies the credential against `GOOGLE_CLIENT_ID`, then returns the
 
 Use the `refreshToken` cookie to receive a new access token.
 
-### `POST /auth/logout` — protected
+### `POST /auth/logout` — public
 
-Clear the refresh-token cookie.
+Clear the refresh-token cookie. The endpoint does not currently require an access token.
+
+### `POST /auth/forgot-password`
+
+Request a password-reset link with `{ "email": "user@example.com" }`. The response is intentionally generic so it does not reveal whether the email is registered.
+
+### `POST /auth/reset-password`
+
+Set a new password with:
+
+```json
+{
+  "token": "password-reset-token",
+  "newPassword": "NewPassword1!"
+}
+```
 
 ## Posts
 
@@ -84,6 +99,14 @@ Post and comment image uploads use `multipart/form-data` with the `images` field
 | POST | `/comments/:commentId/like` | Yes | Like a comment |
 | GET | `/comments/:commentId/likes` | No | List comment likes and count |
 | DELETE | `/comments/:commentId/like` | Yes | Unlike a comment |
+
+## Favorites
+
+| Method | Path | Auth | Description |
+| --- | --- | --- | --- |
+| POST | `/posts/:postId/favorite` | Yes | Add a post to the authenticated user's favorites |
+| GET | `/posts/user/favorites` | Yes | List the authenticated user's favorited posts |
+| DELETE | `/posts/:postId/favorite` | Yes | Remove a post from the authenticated user's favorites |
 
 ## Follows
 

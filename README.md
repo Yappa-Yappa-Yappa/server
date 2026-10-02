@@ -64,6 +64,7 @@ The server listens on the port configured by `PORT` in `.env`.
 | --- | --- |
 | `npm run dev` | Start Express with nodemon |
 | `npm start` | Start Express normally |
+| `npm test` | Not configured; exits with a failure status |
 | `npm run lint` | Run ESLint |
 | `npm run lint:fix` | Fix supported ESLint issues |
 
