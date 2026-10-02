@@ -9,6 +9,7 @@ const validateRequest = (schema) => {
       return res.status(400).json({ error: error });
     }
 
+    req.body = result.data;
     next();
   };
 };

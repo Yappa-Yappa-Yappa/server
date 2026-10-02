@@ -1,5 +1,5 @@
 const { prisma } = require("../config/prisma");
-const sendOtp = require("../utils/sendMail");
+const { sendOtp } = require("../utils/sendMail");
 
 const requestOtp = async ({ email }) => {
   const user = await prisma.user.findUnique({

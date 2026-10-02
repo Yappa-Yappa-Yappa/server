@@ -82,23 +82,64 @@ const registerUser = async ({ name, email, password }) => {
     where: { email },
   });
 
-  if (existingUser) {
+  // Verified accounts cannot be registered again with the same email.
+  if (existingUser?.isVerified) {
     const error = new Error("Email already in use");
     error.statusCode = 409; // 409 = conflict
     throw error;
   }
-
-  const userCount = await prisma.user.count();
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
   const otpCode = Math.floor(1000 + Math.random() * 9000).toString();
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-  const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-  const username = `${name.toLowerCase().replace(/\s+/g, "")}${randomSuffix}`;
+  // An unverified account can retry registration without creating a duplicate user.
+  const isExistingUnverifiedUser = Boolean(existingUser);
+  const userCount = isExistingUnverifiedUser ? null : await prisma.user.count();
+  let username;
+
+  if (!isExistingUnverifiedUser) {
+    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+    username = `${name.toLowerCase().replace(/\s+/g, "")}${randomSuffix}`;
+  }
 
   const user = await prisma.$transaction(async (transaction) => {
+    if (isExistingUnverifiedUser) {
+      // Refresh the pending account with the latest registration details.
+      const updatedUser = await transaction.user.update({
+        where: { id: existingUser.id },
+        data: {
+          name,
+          password: hashedPassword,
+        },
+        select: {
+          id: true,
+          name: true,
+          username: true,
+          email: true,
+          role: true,
+          isVerified: true,
+          createdAt: true,
+        },
+      });
+
+      // Keep only one active OTP and reset its five-minute expiry window.
+      await transaction.otp.deleteMany({
+        where: { userId: updatedUser.id },
+      });
+
+      await transaction.otp.create({
+        data: {
+          userId: updatedUser.id,
+          otp: otpCode,
+          expiresAt,
+        },
+      });
+
+      return updatedUser;
+    }
+
     const createdUser = await transaction.user.create({
       data: {
         name,
@@ -135,12 +176,14 @@ const registerUser = async ({ name, email, password }) => {
     });
 
     try {
-      await prisma.user.delete({ where: { id: user.id } });
+      // A failed email should not leave a fresh OTP that cannot be delivered.
+      if (isExistingUnverifiedUser) {
+        await prisma.otp.deleteMany({ where: { userId: user.id } });
+      } else {
+        await prisma.user.delete({ where: { id: user.id } });
+      }
     } catch (cleanupError) {
-      console.error(
-        `Failed to clean up registration for ${user.email}:`,
-        cleanupError,
-      );
+      console.error(`Failed to clean up registration for ${user.email}:`, cleanupError);
     }
 
     const emailError = new Error(
