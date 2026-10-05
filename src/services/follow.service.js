@@ -177,4 +177,38 @@ const getFollowing = async ({ username, viewerId }) => {
   };
 };
 
-module.exports = { followUser, unfollowUser, getFollowers, getFollowing };
+const getSuggestedUsers = async ({ limit = 5, userId } = {}) => {
+  const suggest = await prisma.user.findMany({
+    where: {
+      id: { not: userId }, // Exclude the currently logged-in user from the suggestions.
+      isActive: true,
+      deletedAt: null,
+      followings: {
+        none: {
+          followerId: userId, // Find users who have no follow record where the current user is following them.
+        },
+      },
+    },
+    select: {
+      id: true,
+      name: true,
+      username: true,
+      imageUrl: true,
+      _count: {
+        select: { followers: true },
+      },
+    },
+    orderBy: [{ followers: { _count: "desc" } }, { createdAt: "desc" }],
+    take: limit,
+  });
+
+  return suggest;
+};
+
+module.exports = {
+  followUser,
+  unfollowUser,
+  getFollowers,
+  getFollowing,
+  getSuggestedUsers,
+};

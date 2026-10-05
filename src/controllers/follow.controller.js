@@ -3,6 +3,7 @@ const {
   unfollowUser,
   getFollowers,
   getFollowing,
+  getSuggestedUsers,
 } = require("../services/follow.service");
 
 const followUserHandler = async (req, res, next) => {
@@ -55,9 +56,26 @@ const getFollowingHandler = async (req, res, next) => {
   }
 };
 
+const getSuggestedUsersHandler = async (req, res, next) => {
+  try {
+    const userId = req.user.id;
+    const { limit } = req.query;
+
+    const suggest = await getSuggestedUsers({
+      userId,
+      limit: limit ? Number(limit) : undefined,
+    });
+
+    res.status(200).json({ status: "success", data: suggest });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   followUserHandler,
   unfollowUserHandler,
   getFollowersHandler,
   getFollowingHandler,
+  getSuggestedUsersHandler,
 };
