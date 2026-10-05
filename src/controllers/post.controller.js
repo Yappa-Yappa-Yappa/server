@@ -5,6 +5,7 @@ const {
   updatePost,
   deletePost,
   incrementView,
+  trendyPost,
 } = require("../services/post.service");
 
 const createPostHandler = async (req, res, next) => {
@@ -97,6 +98,20 @@ const deletePostHandler = async (req, res, next) => {
   }
 };
 
+const trendyPostHandler = async (req, res, next) => {
+  try {
+    const { limit } = req.query;
+
+    const posts = await trendyPost({
+      limit: limit ? Number(limit) : undefined, // convert string to number, or let the service's default (3) apply
+    });
+
+    res.status(200).json({ status: "success", data: posts });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   createPostHandler,
   getPostByIdHandler,
@@ -104,4 +119,5 @@ module.exports = {
   getPostsHandler,
   updatePostHandler,
   deletePostHandler,
+  trendyPostHandler,
 };

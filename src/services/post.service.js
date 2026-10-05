@@ -252,6 +252,29 @@ const deletePost = async ({ id, userId }) => {
   return { message: "No more yap" };
 };
 
+const trendyPost = async ({ limit = 3 } = {}) => {
+  const since = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+
+  const posts = await prisma.post.findMany({
+    where: { createdAt: { gte: since } }, // gte = greater or eqaul >=
+    include: {
+      user: {
+        select: { id: true, name: true, username: true, imageUrl: true },
+      },
+      images: true,
+      _count: { select: { likes: true, comments: true } },
+    },
+    orderBy: [
+      { likes: { _count: "desc" } },
+      { createdAt: "desc" },
+      { id: "desc" },
+    ], // most-liked first, within the time window
+    take: limit,
+  });
+
+  return posts;
+};
+
 module.exports = {
   createPost,
   getPosts,
@@ -259,4 +282,5 @@ module.exports = {
   incrementView,
   updatePost,
   deletePost,
+  trendyPost,
 };
