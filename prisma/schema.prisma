@@ -22,6 +22,7 @@ enum NotificationType {
   LIKE
   COMMENT
   FOLLOW
+  REPOST
 }
 
 model User {

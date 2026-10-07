@@ -1,4 +1,6 @@
+const { NotificationType } = require("@prisma/client");
 const { prisma } = require("../config/prisma");
+const { createNotification } = require("./notification.service");
 
 const repost = async ({ userId, postId }) => {
   const post = await prisma.post.findUnique({
@@ -24,6 +26,15 @@ const repost = async ({ userId, postId }) => {
   const result = await prisma.repost.create({
     data: { userId, postId },
   });
+
+  if (post.userId !== userId) {
+    await createNotification({
+      userId: post.userId,
+      actorId: userId,
+      type: NotificationType.REPOST,
+      postId,
+    });
+  }
 
   return result;
 };
