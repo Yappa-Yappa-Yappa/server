@@ -26,6 +26,12 @@ const {
   addFavoriteHandler,
   getFavoritesHandler,
 } = require("../controllers/favorite.controller");
+const {
+  repostHandler,
+  removeRepostHandler,
+  hasRepostedHandler,
+  getRepostOfUserHandler,
+} = require("../controllers/repost.controller");
 
 const router = express.Router();
 
@@ -38,6 +44,13 @@ router.get("/:id", getPostByIdHandler);
 router.patch("/:id", incrementViewHandler);
 router.put("/:id", verifyToken, upload.array("images", 5), updatePostHandler);
 router.delete("/:id", verifyToken, deletePostHandler);
+
+// Reposts
+router.post("/:postId/repost", verifyToken, repostHandler);
+router.delete("/:postId/repost", verifyToken, removeRepostHandler);
+router.get("/:postId/repost/status", verifyToken, hasRepostedHandler);
+
+router.get("/user/:username/reposts", verifyToken, getRepostOfUserHandler);
 
 // Comments
 router.post(
