@@ -127,14 +127,29 @@ const getPosts = async ({ page = 1, limit = 20, userId, viewerId } = {}) => {
     .map(({ id }) => postsById.get(id))
     .filter(Boolean);
 
+  const likedPostIds = viewerId
+    ? new Set(
+        (
+          await prisma.like.findMany({
+            where: {
+              userId: viewerId,
+              postId: { in: postIds.map((post) => post.id) },
+            },
+            select: { postId: true },
+          })
+        ).map(({ postId }) => postId),
+      )
+    : new Set();
+
   // Expose per-viewer bookmark state to the client.
-  const postsWithFavoriteState = orderedPosts.map((post) => ({
+  const postsWithInteractionState = orderedPosts.map((post) => ({
     ...post,
+    isLiked: likedPostIds.has(post.id),
     isFavorited: favoritePostIds.has(post.id),
   }));
 
   return {
-    posts: postsWithFavoriteState,
+    posts: postsWithInteractionState,
     pagination: {
       page,
       limit,
@@ -311,8 +326,39 @@ const getFollowingPosts = async ({ page = 1, limit = 20, viewerId } = {}) => {
     }),
     prisma.post.count({ where }),
   ]);
+
+  const likedPostIds = new Set(
+    (
+      await prisma.like.findMany({
+        where: {
+          userId: viewerId,
+          postId: { in: posts.map((post) => post.id) },
+        },
+        select: { postId: true },
+      })
+    ).map(({ postId }) => postId),
+  );
+
+  const favoritePostIds = new Set(
+    (
+      await prisma.favorite.findMany({
+        where: {
+          userId: viewerId,
+          postId: { in: posts.map((post) => post.id) },
+        },
+        select: { postId: true },
+      })
+    ).map(({ postId }) => postId),
+  );
+
+  const postsWithInteractionState = posts.map((post) => ({
+    ...post,
+    isLiked: likedPostIds.has(post.id),
+    isFavorited: favoritePostIds.has(post.id),
+  }));
+
   return {
-    posts,
+    posts: postsWithInteractionState,
     pagination: {
       page,
       limit,

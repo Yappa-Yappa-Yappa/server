@@ -75,9 +75,25 @@ Post and comment image uploads use `multipart/form-data` with the `images` field
 | --- | --- | --- | --- |
 | POST | `/posts` | Yes | Create a post with optional `content` and `images` |
 | GET | `/posts` | Yes | List the authenticated user's feed |
+| GET | `/posts/following` | Yes | List posts from users followed by the authenticated user |
 | GET | `/posts/:id` | No | Get one post and its images |
 | PUT | `/posts/:id` | Yes | Update the owner's post; accepts `content` and optional `images` |
 | DELETE | `/posts/:id` | Yes | Delete the owner's post |
+
+Post list and detail responses include `_count.likes`, `_count.comments`, and `_count.reposts`.
+
+## Reposts
+
+Reposts create a relationship between the authenticated user and an existing post. A user can repost a post only once.
+
+| Method | Path | Auth | Description |
+| --- | --- | --- | --- |
+| POST | `/posts/:postId/repost` | Yes | Repost a post |
+| DELETE | `/posts/:postId/repost` | Yes | Remove the authenticated user's repost |
+| GET | `/posts/:postId/repost/status` | Yes | Return whether the authenticated user has reposted the post |
+| GET | `/posts/user/:username/reposts` | Yes | List a user's reposts, newest first |
+
+`POST /posts/:postId/repost` returns `409` if the authenticated user has already reposted the post. The status endpoint returns a boolean in `data`.
 
 ## Comments
 
