@@ -153,7 +153,7 @@ Comment likes use `/comments/:commentId/like`. Comment bookmarks use `/comments/
 
 ## Notifications
 
-Notifications are generated when another user likes a post/comment, comments on a post, or follows the user. Users do not receive notifications for their own actions.
+Notifications are generated when another user likes a post/comment, comments on a post, follows the user, or reposts the user's post. Users do not receive notifications for their own actions.
 
 | Method | Path | Auth | Description |
 | --- | --- | --- | --- |
@@ -175,6 +175,7 @@ Notifications are generated when another user likes a post/comment, comments on 
 | Method | Path | Auth | Description |
 | --- | --- | --- | --- |
 | GET | `/user/:username` | Yes | Get a user's profile and viewer-specific relationship state |
+| GET | `/user/:username/comments` | Yes | List the user's top-level comments on other users' posts |
 | GET | `/user/me/activity` | Yes | Get recent activity for the authenticated user |
 | PATCH | `/user/update-bio` | Yes | Update the authenticated user's bio |
 | PATCH | `/user/update-name` | Yes | Update the authenticated user's display name |
