@@ -6,6 +6,7 @@ const {
   deletePost,
   incrementView,
   trendyPost,
+  getFollowingPosts,
 } = require("../services/post.service");
 
 const createPostHandler = async (req, res, next) => {
@@ -112,6 +113,23 @@ const trendyPostHandler = async (req, res, next) => {
   }
 };
 
+const getFollowingPostsHandler = async (req, res, next) => {
+  try {
+    const { page, limit } = req.query;
+    const viewerId = req.user.id;
+
+    const result = await getFollowingPosts({
+      page: page ? Number(page) : undefined,
+      limit: limit ? Number(limit) : undefined,
+      viewerId,
+    });
+
+    res.status(200).json({ status: "success", data: result });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   createPostHandler,
   getPostByIdHandler,
@@ -120,4 +138,5 @@ module.exports = {
   updatePostHandler,
   deletePostHandler,
   trendyPostHandler,
+  getFollowingPostsHandler,
 };

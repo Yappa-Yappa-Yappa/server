@@ -275,6 +275,52 @@ const trendyPost = async ({ limit = 3 } = {}) => {
   return posts;
 };
 
+const getFollowingPosts = async ({ page = 1, limit = 20, viewerId } = {}) => {
+  const skip = (page - 1) * limit;
+
+  const where = {
+    user: {
+      id: { not: viewerId },
+      followings: {
+        some: {
+          followerId: viewerId, // select only the following user that has the current logged in account following
+        },
+      },
+    },
+  };
+
+  const [posts, total] = await Promise.all([
+    prisma.post.findMany({
+      where,
+      include: {
+        images: true,
+        user: {
+          select: { id: true, name: true, username: true, imageUrl: true },
+        },
+        _count: {
+          select: {
+            likes: true,
+            comments: true,
+          },
+        },
+      },
+      orderBy: [{ createdAt: "desc" }, { id: "desc" }],
+      skip,
+      take: limit,
+    }),
+    prisma.post.count({ where }),
+  ]);
+  return {
+    posts,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+    },
+  };
+};
+
 module.exports = {
   createPost,
   getPosts,
@@ -283,4 +329,5 @@ module.exports = {
   updatePost,
   deletePost,
   trendyPost,
+  getFollowingPosts,
 };

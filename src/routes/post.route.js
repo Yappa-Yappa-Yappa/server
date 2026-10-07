@@ -8,6 +8,7 @@ const {
   deletePostHandler,
   incrementViewHandler,
   trendyPostHandler,
+  getFollowingPostsHandler,
 } = require("../controllers/post.controller");
 const upload = require("../config/upload");
 const {
@@ -32,6 +33,7 @@ const router = express.Router();
 router.post("/", verifyToken, upload.array("images", 5), createPostHandler);
 router.get("/", verifyToken, getPostsHandler);
 router.get("/trending", verifyToken, trendyPostHandler);
+router.get("/following", verifyToken, getFollowingPostsHandler);
 router.get("/:id", getPostByIdHandler);
 router.patch("/:id", incrementViewHandler);
 router.put("/:id", verifyToken, upload.array("images", 5), updatePostHandler);
