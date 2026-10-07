@@ -9,6 +9,7 @@ const {
   changeAvatarHandler,
   getProfileHandler,
   getRecentActivityHandler,
+  getCommentsByUserHandler,
   changeBackgroundHandler,
 } = require("../controllers/user.controller");
 const uploadAvatar = require("../config/uploadAvatar");
@@ -35,6 +36,7 @@ router.patch(
   changeBackgroundHandler,
 );
 router.get("/me/activity", verifyToken, getRecentActivityHandler);
+router.get("/:username/comments", verifyToken, getCommentsByUserHandler);
 
 // Profile
 router.get("/:username", verifyToken, getProfileHandler);

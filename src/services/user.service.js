@@ -267,6 +267,40 @@ const getRecentActivity = async ({ userId }) => {
   return { likedPosts, commentedPosts };
 };
 
+const getCommentsByUser = async ({ username }) => {
+  const user = await prisma.user.findUnique({
+    where: { username },
+    select: { id: true },
+  });
+
+  if (!user) {
+    const error = new Error("User not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  return prisma.comment.findMany({
+    where: {
+      userId: user.id,
+      parentId: null,
+      post: { userId: { not: user.id } },
+    },
+    include: {
+      images: true,
+      post: {
+        select: {
+          id: true,
+          content: true,
+          user: {
+            select: { id: true, name: true, username: true, imageUrl: true },
+          },
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+};
+
 module.exports = {
   changeBio,
   changeName,
@@ -276,5 +310,6 @@ module.exports = {
   changeAvatar,
   getProfile,
   getRecentActivity,
+  getCommentsByUser,
   changeBackground,
 };

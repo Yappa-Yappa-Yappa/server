@@ -7,6 +7,7 @@ const {
   changeAvatar,
   getProfile,
   getRecentActivity,
+  getCommentsByUser,
   changeBackground,
 } = require("../services/user.service");
 
@@ -153,6 +154,17 @@ const getRecentActivityHandler = async (req, res, next) => {
   }
 };
 
+const getCommentsByUserHandler = async (req, res, next) => {
+  try {
+    const { username } = req.params;
+    const comments = await getCommentsByUser({ username });
+
+    res.status(200).json({ status: "success", data: comments });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   changeBioHandler,
   changeNameHandler,
@@ -162,5 +174,6 @@ module.exports = {
   changeAvatarHandler,
   getProfileHandler,
   getRecentActivityHandler,
+  getCommentsByUserHandler,
   changeBackgroundHandler,
 };
