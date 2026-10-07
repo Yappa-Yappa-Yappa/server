@@ -36,3 +36,17 @@ Express 5 + Prisma (PostgreSQL) backend. CommonJS, Node >= 18.
 - Match established patterns exactly in later files; do not introduce a second style.
 - Do not add packages not already in `package.json` without flagging it first.
 - Keep this file updated when a new backend convention is established.
+
+## Commit messages
+
+Use concise conventional commit prefixes and keep each commit focused:
+
+- `feat:` — new functionality
+- `fix:` — bug fixes
+- `perf:` — performance improvements
+- `refactor:` — code restructuring without behavior changes
+- `style:` — styling-only changes
+- `docs:` — documentation changes
+- `chore:` — maintenance or configuration work
+
+Older history also uses `add:`, but use `feat:` for new features going forward. For example: `feat: add repost notifications`.
