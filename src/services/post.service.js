@@ -101,7 +101,7 @@ const getPosts = async ({ page = 1, limit = 20, userId, viewerId } = {}) => {
       user: {
         select: { id: true, name: true, username: true, imageUrl: true },
       },
-      _count: { select: { likes: true, comments: true } },
+      _count: { select: { likes: true, comments: true, reposts: true } },
     },
   });
 
@@ -152,7 +152,7 @@ const getPostById = async ({ id }) => {
       user: {
         select: { id: true, name: true, username: true, imageUrl: true },
       },
-      _count: { select: { likes: true, comments: true } },
+      _count: { select: { likes: true, comments: true, reposts: true } },
     },
   });
 
@@ -262,7 +262,7 @@ const trendyPost = async ({ limit = 3 } = {}) => {
         select: { id: true, name: true, username: true, imageUrl: true },
       },
       images: true,
-      _count: { select: { likes: true, comments: true } },
+      _count: { select: { likes: true, comments: true, reposts: true } },
     },
     orderBy: [
       { likes: { _count: "desc" } },
@@ -301,6 +301,7 @@ const getFollowingPosts = async ({ page = 1, limit = 20, viewerId } = {}) => {
           select: {
             likes: true,
             comments: true,
+            reposts: true,
           },
         },
       },
