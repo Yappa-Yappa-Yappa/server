@@ -25,6 +25,20 @@ enum NotificationType {
   REPOST
 }
 
+enum ReportReason {
+  SPAM
+  HARASSMENT
+  HATE_SPEECH
+  INAPPROPRIATE
+  OTHER
+}
+
+enum ReportStatus {
+  PENDING
+  RESOLVED
+  DISMISSED
+}
+
 model User {
   id String @id @default(uuid())
   name String @db.VarChar(50)
@@ -56,6 +70,9 @@ model User {
   messages Message[]
   accounts Account[]
   reposts Repost[]
+  reporter Report[] @relation("Reporter")
+  reported Report[] @relation("Reported")
+  resolver Report[] @relation("Resolver")
 
   @@map("users")
 }
@@ -89,6 +106,7 @@ model Post {
   images PostImage[]
   favorites Favorite[]
   reposts Repost[]
+  reports Report[]
 
   @@index([userId]) // For performance: faster query
   @@index([createdAt])
@@ -140,6 +158,7 @@ model Comment {
   likes Like[]
   favorites Favorite[]
   images CommentImage[]
+  reports Report[]
 
   @@index([postId])
   @@index([userId])
@@ -315,4 +334,30 @@ model Message {
   @@index([conversationId, createdAt])
   @@index([senderId])
   @@map("messages")
+}
+
+model Report {
+  id            String   @id @default(uuid())
+  reporterId    String
+  postId        String?
+  commentId     String?
+  reportedUserId  String?
+  reason  ReportReason
+  description String? @db.VarChar(500)
+  status ReportStatus @default(PENDING)
+  resolvedById String?
+  resolvedAt DateTime?
+  createdAt DateTime @default(now())
+
+  reporter User @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  reportedUser User? @relation("Reported", fields: [reportedUserId], references: [id], onDelete: Cascade)
+  resolvedBy User? @relation("Resolver", fields: [resolvedById], references: [id], onDelete: Cascade)
+  post Post? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  comment Comment? @relation(fields: [commentId], references: [id], onDelete: Cascade)
+
+  @@unique([reporterId, postId])
+  @@unique([reporterId, commentId])
+  @@unique([reporterId, reportedUserId])
+  @@index([status, createdAt])
+  @@map("reports")
 }
