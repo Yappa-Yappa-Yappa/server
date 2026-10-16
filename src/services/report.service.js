@@ -1,4 +1,5 @@
 const { prisma } = require("../config/prisma");
+const { createNotification } = require("./notification.service");
 
 const createReport = async ({
   reporterId,
@@ -62,7 +63,7 @@ const createReport = async ({
 
   if (existing) return existing; // already reported, return it instead of erroring
 
-  return prisma.report.create({
+  const result = await prisma.report.create({
     data: {
       reporterId,
       postId,
@@ -72,6 +73,15 @@ const createReport = async ({
       description,
     },
   });
+
+  // Only create notification after reporting something
+  await createNotification({
+    userId: reporterId,
+    actorId: null,
+    type: "REPORT",
+  }).catch(() => {});
+
+  return result;
 };
 
 const getReports = async () => {

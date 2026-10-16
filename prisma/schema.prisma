@@ -23,6 +23,7 @@ enum NotificationType {
   COMMENT
   FOLLOW
   REPOST
+  REPORT
 }
 
 enum ReportReason {
@@ -219,14 +220,14 @@ model Follow {
 model Notification {
   id String @id @default(uuid())
   userId String // receiver
-  actorId String // the one who triggers it
+  actorId String? // the one who triggers it
   type NotificationType
   postId String?
   isRead Boolean @default(false)
   createdAt DateTime @default(now())
 
   user User @relation("Receiver", fields: [userId], references: [id], onDelete: Cascade)
-  actor User @relation("Triggerer", fields: [actorId], references: [id], onDelete: Cascade)
+  actor User? @relation("Triggerer", fields: [actorId], references: [id], onDelete: Cascade)
   post Post? @relation(fields: [postId], references: [id], onDelete: Cascade)
 
   @@index([userId])
