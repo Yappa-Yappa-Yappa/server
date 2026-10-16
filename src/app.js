@@ -14,6 +14,7 @@ const otpRouter = require("./routes/otp.route");
 const userRouter = require("./routes/user.route");
 const conversationRouter = require("./routes/conversation.route");
 const searchRouter = require("./routes/search.route");
+const reportRouter = require("./routes/report.route");
 
 const errorHandler = require("./middlewares/errorHandler");
 
@@ -40,6 +41,7 @@ app.use("/api/otps", otpRouter);
 app.use("/api/user", userRouter);
 app.use("/api/conversations", conversationRouter);
 app.use("/api/search", searchRouter);
+app.use("/api/reports", reportRouter);
 
 app.use(errorHandler);
 
