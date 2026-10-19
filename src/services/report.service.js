@@ -79,6 +79,7 @@ const createReport = async ({
     userId: reporterId,
     actorId: null,
     type: "REPORT",
+    postId,
   }).catch(() => {});
 
   return result;
