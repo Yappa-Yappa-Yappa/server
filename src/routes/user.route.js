@@ -14,24 +14,37 @@ const {
 } = require("../controllers/user.controller");
 const uploadAvatar = require("../config/uploadAvatar");
 const uploadBackground = require("../config/uploadBackground");
+const { actionLimiter } = require("../middlewares/rateLimiter");
 
 const router = express.Router();
 
 // Update Info
-router.patch("/update-bio", verifyToken, changeBioHandler);
-router.patch("/update-name", verifyToken, changeNameHandler);
-router.patch("/update-username", verifyToken, changeUsernameHandler);
-router.patch("/update-email", verifyToken, changeEmailHandler);
-router.patch("/update-password", verifyToken, changePasswordHandler);
+router.patch("/update-bio", verifyToken, actionLimiter, changeBioHandler);
+router.patch("/update-name", verifyToken, actionLimiter, changeNameHandler);
+router.patch(
+  "/update-username",
+  verifyToken,
+  actionLimiter,
+  changeUsernameHandler,
+);
+router.patch("/update-email", verifyToken, actionLimiter, changeEmailHandler);
+router.patch(
+  "/update-password",
+  verifyToken,
+  actionLimiter,
+  changePasswordHandler,
+);
 router.patch(
   "/update-avatar",
   verifyToken,
+  actionLimiter,
   uploadAvatar.single("imageUrl"),
   changeAvatarHandler,
 );
 router.patch(
   "/update-background",
   verifyToken,
+  actionLimiter,
   uploadBackground.single("bgUrl"),
   changeBackgroundHandler,
 );

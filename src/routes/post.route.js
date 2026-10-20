@@ -32,21 +32,34 @@ const {
   hasRepostedHandler,
   getRepostOfUserHandler,
 } = require("../controllers/repost.controller");
+const { postLimiter, actionLimiter } = require("../middlewares/rateLimiter");
 
 const router = express.Router();
 
 // Posts
-router.post("/", verifyToken, upload.array("images", 5), createPostHandler);
+router.post(
+  "/",
+  verifyToken,
+  postLimiter,
+  upload.array("images", 5),
+  createPostHandler,
+);
 router.get("/", verifyToken, getPostsHandler);
 router.get("/trending", verifyToken, trendyPostHandler);
 router.get("/following", verifyToken, getFollowingPostsHandler);
 router.get("/:id", getPostByIdHandler);
 router.patch("/:id", incrementViewHandler);
-router.put("/:id", verifyToken, upload.array("images", 5), updatePostHandler);
+router.put(
+  "/:id",
+  verifyToken,
+  postLimiter,
+  upload.array("images", 5),
+  updatePostHandler,
+);
 router.delete("/:id", verifyToken, deletePostHandler);
 
 // Reposts
-router.post("/:postId/repost", verifyToken, repostHandler);
+router.post("/:postId/repost", verifyToken, actionLimiter, repostHandler);
 router.delete("/:postId/repost", verifyToken, removeRepostHandler);
 router.get("/:postId/repost/status", verifyToken, hasRepostedHandler);
 
@@ -56,6 +69,7 @@ router.get("/user/:username/reposts", verifyToken, getRepostOfUserHandler);
 router.post(
   "/:postId/comments",
   verifyToken,
+  actionLimiter,
   upload.array("images", 3),
   createCommentHandler,
 );
@@ -63,12 +77,17 @@ router.get("/:postId/comments", verifyToken, getCommentsByPostHandler);
 router.delete("/comments/:id", verifyToken, deleteCommentHandler);
 
 // Likes
-router.post("/:postId/like", verifyToken, likePostHandler);
+router.post("/:postId/like", verifyToken, actionLimiter, likePostHandler);
 router.get("/:postId/likes", getLikesByPostHandler);
 router.delete("/:postId/like", verifyToken, unlikePostHandler);
 
 // Favorites
-router.post("/:postId/favorite", verifyToken, addFavoriteHandler);
+router.post(
+  "/:postId/favorite",
+  verifyToken,
+  actionLimiter,
+  addFavoriteHandler,
+);
 router.get("/user/favorites", verifyToken, getFavoritesHandler);
 router.delete("/:postId/favorite", verifyToken, removeFavoriteHandler);
 

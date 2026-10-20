@@ -7,10 +7,11 @@ const {
   getFollowingHandler,
   getSuggestedUsersHandler,
 } = require("../controllers/follow.controller");
+const { actionLimiter } = require("../middlewares/rateLimiter");
 
 const router = express.Router();
 
-router.post("/:userId/follow", verifyToken, followUserHandler);
+router.post("/:userId/follow", verifyToken, actionLimiter, followUserHandler);
 router.delete("/:userId/unfollow", verifyToken, unfollowUserHandler);
 
 router.get("/suggestions", verifyToken, getSuggestedUsersHandler);

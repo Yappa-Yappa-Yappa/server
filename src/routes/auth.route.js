@@ -16,7 +16,7 @@ const {
   forgotPasswordSchema,
   resetPasswordSchema,
 } = require("../validators/auth.validator");
-const { authLimiter, oauthLimiter } = require("../middlewares/rateLimiter");
+const { authLimiter, oauthLimiter } = require("../middlewares/authLimiter");
 
 const router = express.Router();
 

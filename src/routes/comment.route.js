@@ -16,6 +16,7 @@ const {
   getLikesByCommentHandler,
   unlikeCommentHandler,
 } = require("../controllers/like.controller");
+const { actionLimiter } = require("../middlewares/rateLimiter");
 
 const router = express.Router();
 
@@ -24,6 +25,7 @@ router.get("/:id/thread", verifyToken, getCommentThreadHandler);
 router.post(
   "/:commentId/favorite",
   verifyToken,
+  actionLimiter,
   addCommentFavoriteHandler,
 );
 router.delete(
@@ -41,7 +43,7 @@ router.patch(
 router.delete("/:id", verifyToken, deleteCommentHandler);
 
 // Likes
-router.post("/:commentId/like", verifyToken, likeCommentHandler);
+router.post("/:commentId/like", verifyToken, actionLimiter, likeCommentHandler);
 router.get("/:commentId/likes", getLikesByCommentHandler);
 router.delete("/:commentId/like", verifyToken, unlikeCommentHandler);
 

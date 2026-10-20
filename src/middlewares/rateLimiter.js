@@ -1,21 +1,25 @@
 const rateLimiter = require("express-rate-limit");
 
-const otpLimiter = rateLimiter({
-  windowMs: 5 * 60 * 1000,
-  max: 3,
-  message: { error: "Too many otp requests, please try again later." },
-});
-
-const authLimiter = rateLimiter({
-  windowMs: 5 * 60 * 1000,
-  max: 5,
-  message: { error: "Too many requests, please try again later." },
-});
-
-const oauthLimiter = rateLimiter({
+// creating posts: 10 per 10 minutes, per logged-in user
+const postLimiter = rateLimiter({
   windowMs: 10 * 60 * 1000,
-  max: 10,
-  message: { error: "Too many OAuth attempts, please try again later." },
+  limit: 10,
+  keyGenerator: (req) => req.user.id, // must run AFTER verifyToken
+  message: {
+    success: false,
+    message: "You're posting too fast, try again later",
+  },
 });
 
-module.exports = { otpLimiter, authLimiter, oauthLimiter };
+// comments, likes, follows: more relaxed
+const actionLimiter = rateLimiter({
+  windowMs: 60 * 1000,
+  limit: 30,
+  keyGenerator: (req) => req.user.id,
+  message: {
+    success: false,
+    message: "Too many actions, slow down",
+  },
+});
+
+module.exports = { postLimiter, actionLimiter };

@@ -3,7 +3,7 @@ const {
   requestOtpHandler,
   verifyOtpHandler,
 } = require("../controllers/otp.controller");
-const { otpLimiter } = require("../middlewares/rateLimiter");
+const { otpLimiter } = require("../middlewares/authLimiter");
 
 const router = express.Router();
 

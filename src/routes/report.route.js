@@ -12,12 +12,14 @@ const {
   createReportSchema,
   resolveReportSchema,
 } = require("../validators/report.validator");
+const { actionLimiter } = require("../middlewares/rateLimiter");
 
 const router = express.Router();
 
 router.post(
   "/",
   verifyToken,
+  actionLimiter,
   validateRequest(createReportSchema),
   createReportHandler,
 );
