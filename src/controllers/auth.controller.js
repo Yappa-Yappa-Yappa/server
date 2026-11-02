@@ -2,6 +2,7 @@ const {
   refreshAccessToken,
   registerUser,
   loginUser,
+  loginWithFace,
   loginWithGoogle,
   forgotPassword,
   resetPassword,
@@ -37,6 +38,17 @@ const login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
     const { user, accessToken } = await loginUser({ email, password }, res);
+
+    res.status(200).json({ status: "success", data: { user, accessToken } });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const faceLogin = async (req, res, next) => {
+  try {
+    const { code } = req.body;
+    const { user, accessToken } = await loginWithFace({ code }, res);
 
     res.status(200).json({ status: "success", data: { user, accessToken } });
   } catch (err) {
@@ -95,6 +107,7 @@ const resetPasswordHandler = async (req, res, next) => {
 module.exports = {
   register,
   login,
+  faceLogin,
   googleLogin,
   refresh,
   logout,

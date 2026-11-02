@@ -23,6 +23,10 @@ const googleLoginSchema = z.object({
   credential: z.string().trim().min(1, "Google credential is required"),
 });
 
+const faceLoginSchema = z.object({
+  code: z.string().trim().length(32, "Invalid face login code"),
+});
+
 const forgotPasswordSchema = z.object({
   email: z.string().trim().toLowerCase().email("Invalid email address"),
 });
@@ -44,6 +48,7 @@ module.exports = {
   registerSchema,
   loginSchema,
   googleLoginSchema,
+  faceLoginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
 };

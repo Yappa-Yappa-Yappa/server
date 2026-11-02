@@ -2,6 +2,7 @@ const express = require("express");
 const {
   register,
   login,
+  faceLogin,
   googleLogin,
   refresh,
   logout,
@@ -13,6 +14,7 @@ const {
   registerSchema,
   loginSchema,
   googleLoginSchema,
+  faceLoginSchema,
   forgotPasswordSchema,
   resetPasswordSchema,
 } = require("../validators/auth.validator");
@@ -33,6 +35,12 @@ router.post(
   validateRequest(googleLoginSchema),
   oauthLimiter,
   googleLogin,
+);
+router.post(
+  "/face",
+  validateRequest(faceLoginSchema),
+  authLimiter,
+  faceLogin,
 );
 router.post("/logout", logout);
 router.post(

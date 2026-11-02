@@ -15,6 +15,7 @@ const userRouter = require("./routes/user.route");
 const conversationRouter = require("./routes/conversation.route");
 const searchRouter = require("./routes/search.route");
 const reportRouter = require("./routes/report.route");
+const faceRouter = require("./routes/face.route");
 
 const errorHandler = require("./middlewares/errorHandler");
 
@@ -43,6 +44,7 @@ app.use("/api/user", userRouter);
 app.use("/api/conversations", conversationRouter);
 app.use("/api/search", searchRouter);
 app.use("/api/reports", reportRouter);
+app.use("/api/face", faceRouter);
 
 app.use(errorHandler);
 

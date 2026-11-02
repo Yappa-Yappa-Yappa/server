@@ -8,6 +8,7 @@ const {
   generateRefreshToken,
 } = require("../utils/generateToken");
 const { sendOtp, sendResetLink } = require("../utils/sendMail");
+const { exchangeFaceLoginCode } = require("./face.service");
 
 const googleClient = new OAuth2Client();
 
@@ -226,6 +227,31 @@ const loginUser = async ({ email, password }, res) => {
   return { user: getPublicUser(user), accessToken, refreshToken };
 };
 
+const loginWithFace = async ({ code }, res) => {
+  const { email } = await exchangeFaceLoginCode({ code });
+
+  const user = await prisma.user.findFirst({
+    where: { email: { equals: email, mode: "insensitive" } },
+  });
+
+  if (!user || !user.isActive || user.deletedAt) {
+    const error = new Error("No active Yappa account matches this face");
+    error.statusCode = 401;
+    throw error;
+  }
+
+  if (!user.isVerified) {
+    const error = new Error("Please verify your account before logging in...");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const accessToken = generateAccessToken(user.id);
+  const refreshToken = generateRefreshToken(user.id, res);
+
+  return { user: getPublicUser(user), accessToken, refreshToken };
+};
+
 const loginWithGoogle = async ({ credential }, res) => {
   if (!process.env.GOOGLE_CLIENT_ID) {
     const error = new Error("Google login is not configured");
@@ -373,6 +399,7 @@ module.exports = {
   refreshAccessToken,
   registerUser,
   loginUser,
+  loginWithFace,
   loginWithGoogle,
   forgotPassword,
   resetPassword,
