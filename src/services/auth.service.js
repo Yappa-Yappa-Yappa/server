@@ -228,11 +228,9 @@ const loginUser = async ({ email, password }, res) => {
 };
 
 const loginWithFace = async ({ code }, res) => {
-  const { email } = await exchangeFaceLoginCode({ code });
+  const { userId } = await exchangeFaceLoginCode({ code });
 
-  const user = await prisma.user.findFirst({
-    where: { email: { equals: email, mode: "insensitive" } },
-  });
+  const user = await prisma.user.findUnique({ where: { id: userId } });
 
   if (!user || !user.isActive || user.deletedAt) {
     const error = new Error("No active Yappa account matches this face");

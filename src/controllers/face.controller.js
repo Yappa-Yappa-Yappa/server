@@ -2,7 +2,7 @@ const { getFaceStatus, createFaceSetupLink } = require("../services/face.service
 
 const getFaceStatusHandler = async (req, res, next) => {
   try {
-    const status = await getFaceStatus({ email: req.user.email });
+    const status = await getFaceStatus({ userId: req.user.id });
 
     res.status(200).json({ status: "success", data: status });
   } catch (err) {
@@ -13,7 +13,7 @@ const getFaceStatusHandler = async (req, res, next) => {
 const createFaceSetupLinkHandler = async (req, res, next) => {
   try {
     const link = await createFaceSetupLink({
-      email: req.user.email,
+      userId: req.user.id,
       name: req.user.name,
     });
 

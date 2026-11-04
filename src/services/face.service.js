@@ -23,12 +23,13 @@ const unavailable = () => {
   return error;
 };
 
-const getFaceStatus = async ({ email }) => {
+// People are identified to the Face ID server by Yappa's user ID (never email).
+const getFaceStatus = async ({ userId }) => {
   const client = faceClient();
 
   try {
     const res = await client.get("/api/integration/users/status", {
-      params: { email },
+      params: { user_id: userId },
     });
     return { hasFace: res.data.has_face };
   } catch {
@@ -37,12 +38,12 @@ const getFaceStatus = async ({ email }) => {
 };
 
 // One-time link to the Face ID scan page for this user (valid ~10 minutes).
-const createFaceSetupLink = async ({ email, name }) => {
+const createFaceSetupLink = async ({ userId, name }) => {
   const client = faceClient();
 
   try {
     const res = await client.post("/api/integration/enroll-tokens", {
-      email,
+      user_id: userId,
       name,
     });
     return { url: res.data.url };
@@ -51,7 +52,7 @@ const createFaceSetupLink = async ({ email, name }) => {
   }
 };
 
-// Trades the one-time code the browser brought back from a face scan for the person's email.
+// Trades the one-time code the browser brought back from a face scan for the person's user ID.
 const exchangeFaceLoginCode = async ({ code }) => {
   const client = faceClient();
 
@@ -59,7 +60,7 @@ const exchangeFaceLoginCode = async ({ code }) => {
     const res = await client.post("/api/integration/login-codes/exchange", {
       code,
     });
-    return { email: res.data.email };
+    return { userId: res.data.user_id };
   } catch (err) {
     const error = new Error("Face login failed or expired. Please try again.");
     error.statusCode = err.response?.status >= 500 || !err.response ? 502 : 401;
