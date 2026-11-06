@@ -4,11 +4,20 @@ const {
   getFaceStatusHandler,
   createFaceSetupLinkHandler,
 } = require("../controllers/face.controller");
-const { actionLimiter } = require("../middlewares/rateLimiter");
+const { authLimiter } = require("../middlewares/authLimiter");
+const validateRequest = require("../middlewares/validateRequest");
+const { faceSetupSchema } = require("../validators/face.validator");
 
 const router = express.Router();
 
 router.get("/status", verifyToken, getFaceStatusHandler); // does this user have Face ID set up?
-router.post("/setup", verifyToken, actionLimiter, createFaceSetupLinkHandler); // link to the scan page
+// Link to the scan page. Needs the password, so it gets the strict auth limiter (5 per 5 minutes).
+router.post(
+  "/setup",
+  verifyToken,
+  validateRequest(faceSetupSchema),
+  authLimiter,
+  createFaceSetupLinkHandler,
+);
 
 module.exports = router;

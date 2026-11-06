@@ -1,4 +1,6 @@
 const axios = require("axios");
+const bcrypt = require("bcrypt");
+const { prisma } = require("../config/prisma");
 
 // Talks to the Face ID server. The API key stays on this server and never reaches the browser.
 const faceClient = () => {
@@ -38,13 +40,43 @@ const getFaceStatus = async ({ userId }) => {
 };
 
 // One-time link to the Face ID scan page for this user (valid ~10 minutes).
-const createFaceSetupLink = async ({ userId, name }) => {
+// Registering or replacing a face signs future logins as this user, so the password is re-checked first
+// (an open or stolen session must not be able to plant its own face). `replace: true` tells the Face ID
+// server the password was verified; without it, changing an existing face needs a scan of that same face.
+const createFaceSetupLink = async ({ userId, name, password }) => {
   const client = faceClient();
+
+  const user = await prisma.user.findUnique({
+    where: { id: userId },
+  });
+
+  if (!user) {
+    const error = new Error("User not found");
+    error.statusCode = 404;
+    throw error;
+  }
+
+  if (!user.password) {
+    const error = new Error(
+      "This account has no password. Use 'forgot password' to set one.",
+    );
+    error.statusCode = 400;
+    throw error;
+  }
+
+  const isPassword = await bcrypt.compare(password, user.password);
+
+  if (!isPassword) {
+    const error = new Error("Incorrect password");
+    error.statusCode = 401;
+    throw error;
+  }
 
   try {
     const res = await client.post("/api/integration/enroll-tokens", {
       user_id: userId,
       name,
+      replace: true,
     });
     return { url: res.data.url };
   } catch {

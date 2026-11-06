@@ -15,6 +15,7 @@ const createFaceSetupLinkHandler = async (req, res, next) => {
     const link = await createFaceSetupLink({
       userId: req.user.id,
       name: req.user.name,
+      password: req.body.password,
     });
 
     res.status(200).json({ status: "success", data: link });
